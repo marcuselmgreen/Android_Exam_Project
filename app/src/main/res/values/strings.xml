@@ -33,4 +33,7 @@
     <string name="toAccountAcc">to</string>
     <string name="fromAccount">from</string>
     <string name="toAccountReg">reg</string>
+    <string name="confirm">Confirm</string>
+    <string name="budget_savings_account_monthly_transfer_amount">Budget/Savings account monthly transfer amount</string>
+    <string name="payment_service">Payment Service</string>
 </resources>
