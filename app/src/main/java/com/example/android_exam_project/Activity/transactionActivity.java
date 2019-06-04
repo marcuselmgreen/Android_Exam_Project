@@ -73,7 +73,6 @@ public class transactionActivity extends AppCompatActivity {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         if (snapshot.hasChild(accountTo) && senderAccount.equals(receiverAccount)) {
                             //Retract amount from sender
-                            //senderBalance = snapshot.child(accountNumber).child("balance").getValue(Double.class);
                             db.child(key).child(accountNumber).child("balance").setValue(senderBalance - amountToSend);
                             String accountId = snapshot.child(accountTo).child("id").getValue(String.class);
 
@@ -83,13 +82,15 @@ public class transactionActivity extends AppCompatActivity {
 
                             Toast toast = Toast.makeText(transactionActivity.this, amountToSend + " DKK was sent to your " + accountId + " account", Toast.LENGTH_SHORT);
                             toast.show();
+                            Intent returnIntent = new Intent();
+                            setResult(RESULT_OK,returnIntent);
                             finish();
-                            break;
                         }
                         if (snapshot.hasChild(accountTo) && !senderAccount.equals(receiverAccount)) {
                             //nemId popup
                             Log.d(TAG, "Sender and receiver are not accounts under the same user");
                             String receiverKey = snapshot.getKey();
+                            receiverBalance = snapshot.child(accountTo).child("balance").getValue(Double.class);
                             Intent intent = new Intent(transactionActivity.this, nemidActivity.class);
                             intent.putExtra("AccountTo", accountTo);
                             intent.putExtra("AmountToSend", amountToSend);
@@ -99,14 +100,10 @@ public class transactionActivity extends AppCompatActivity {
                             intent.putExtra("ReceiverKey", receiverKey);
                             intent.putExtra("FromKey", key);
                             startActivity(intent);
+                            Intent returnIntent = new Intent();
+                            setResult(RESULT_OK,returnIntent);
                             finish();
-                            break;
                         }
-                        Toast toast = Toast.makeText(transactionActivity.this, "Account does not exist! Try again", Toast.LENGTH_SHORT);
-                        toast.show();
-                        toAccountAcc.setText("");
-                        toAccountReg.setText("");
-                        toAccountReg.requestFocus();
                     }
                 }
 
@@ -121,16 +118,19 @@ public class transactionActivity extends AppCompatActivity {
             toast.show();
             amount.setText("");
             amount.requestFocus();
-        }else {
+        }
+        /*if (!snapshot.hasChild(accountTo) && !senderAccount.equals(receiverAccount)){
             Toast toast = Toast.makeText(transactionActivity.this, "Please enter a valid account to receive the money..", Toast.LENGTH_SHORT);
             toast.show();
             toAccountAcc.setText("");
             toAccountReg.setText("");
             toAccountReg.requestFocus();
-        }
+        }*/
     }
 
     public void back(View v) {
+        Intent returnIntent = new Intent();
+        setResult(RESULT_CANCELED, returnIntent);
         finish();
     }
 

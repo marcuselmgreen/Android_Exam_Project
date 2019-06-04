@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -58,23 +59,26 @@ public class homeActivity extends AppCompatActivity {
     }
 
     private void loadAccounts() {
-        Log.d(TAG, "loadAccounts: " + accountList.size());
         db.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
              @Override
              public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                  int count = 0;
                  for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                     String id = snapshot.child("id").getRef().getParent().getKey();
-                     Double balance = Double.valueOf(snapshot.child("balance").getValue(Long.class));
-                     Account account = new Account(id, balance);
-                     if (!accountList.get(count).getId().equals(id) || accountList.size() == 0) {
-                         Log.d(TAG, "onDataChange: " + id + ", balance: " + snapshot.child("balance").getValue());
-                         accountList.add(account);
-                     }else {
-                         accountList.set(count, account);
-                         arrayAdapter.notifyDataSetChanged();
+                     if (snapshot.child("balance").getValue() != null) {
+                         String id = snapshot.child("id").getRef().getParent().getKey();
+                         Double balance = Double.valueOf(snapshot.child("balance").getValue(Long.class));
+                         Account account = new Account(id, balance);
+                         if (!accountList.contains(account) && accountList.size() == count) {
+                             Log.d(TAG, "onDataChange: " + id + ", balance: " + snapshot.child("balance").getValue());
+                             accountList.add(account);
+                         }else {
+                             accountList.set(count, account);
+                             arrayAdapter.notifyDataSetChanged();
+                         }
+                         count += 1;
+                     } else {
+                         break;
                      }
-                     count += 1;
                  }
              }
 
@@ -95,11 +99,24 @@ public class homeActivity extends AppCompatActivity {
         Intent intent = new Intent(this, transactionActivity.class);
         intent.putExtra("Accounts", accountList);
         intent.putExtra("Key", key);
-        startActivity(intent);
+        startActivityForResult(intent,1);
     }
 
     public void logout(View v) {
         finish();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+
+            if(resultCode == RESULT_OK){
+                loadAccounts();
+            }
+            if (resultCode == RESULT_CANCELED) {
+                //Do nothing?
+            }
+        }
+    }
 }
