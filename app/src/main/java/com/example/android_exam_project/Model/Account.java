@@ -45,10 +45,8 @@ public class Account implements Parcelable {
 
     @Override
     public String toString() {
-        return "Account{" +
-                "balance=" + balance +
-                ", type='" + type + '\'' +
-                '}';
+        return type +
+                ": " + balance;
     }
 
     protected Account(Parcel in) {

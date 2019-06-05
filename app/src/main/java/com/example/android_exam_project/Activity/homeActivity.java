@@ -1,9 +1,11 @@
 package com.example.android_exam_project.Activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.solver.widgets.Snapshot;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.ListView;
 
 import com.example.android_exam_project.Model.Account;
 import com.example.android_exam_project.R;
+import com.example.android_exam_project.Service.transferService;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -40,6 +43,14 @@ public class homeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         init();
+        loadAccounts();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart: ");
+        loadAccounts();
     }
 
     private void init() {
@@ -51,8 +62,7 @@ public class homeActivity extends AppCompatActivity {
 
         db = FirebaseDatabase.getInstance().getReference("users");
 
-        loadAccounts();
-        //checkMonthlyDeposits();
+        checkMonthlyDeposits();
 
         //Go to account settings activity when selecting an item in listView
         accounts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -105,38 +115,6 @@ public class homeActivity extends AppCompatActivity {
              }
         });
     }
-    //Go to user settings activity
-    public void showSettings(View v) {
-        Intent intent = new Intent(this, settingsActivity.class);
-        intent.putExtra("Key", key);
-        startActivity(intent);
-    }
-    //Go to transaction activity and expect result from intent
-    public void showTransaction(View v) {
-        Intent intent = new Intent(this, transactionActivity.class);
-        intent.putExtra("Accounts", accountList);
-        intent.putExtra("Key", key);
-        startActivityForResult(intent,1);
-    }
-
-    public void logout(View v) {
-        finish();
-    }
-
-    //Update accounts when a transaction is made
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-
-            if(resultCode == RESULT_OK){
-                loadAccounts();
-            }
-            if (resultCode == RESULT_CANCELED) {
-                //Do nothing?
-            }
-        }
-    }
 
     //Check monthly deposits in database and send the money if needed
     public void checkMonthlyDeposits(){
@@ -144,20 +122,45 @@ public class homeActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Calendar today = Calendar.getInstance();
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                //Test if method works
+                //today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 8);
+                //Log.d(TAG, "date today: " + today);
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         if (snapshot.hasChild("monthly_deposit")){
-                            //Get date from database and convert to Calendar format
-                            String date = snapshot.child("budget").child("date").getValue(String.class);
-                            Log.d(TAG, "Deposit date: " + date);
-                            int day = Integer.valueOf(date.substring(1));
-                            int month = Integer.valueOf(date.substring(4));
-                            int year = Integer.valueOf(date.substring(5,8));
-                            Calendar depositDate = Calendar.getInstance();
-                            depositDate.set(year, month, day);
-                            if (depositDate.before(today)){
-                                Log.d(TAG, "Before today");;
-                            }else {
-                                Log.d(TAG, "After today");
+                            //Get each date registered for monthly deposit from database and convert to Calendar format
+                            Iterable<DataSnapshot> monthlyDepositChildren = snapshot.child("monthly_deposit").getChildren();
+                            for (DataSnapshot children : monthlyDepositChildren){
+                                String date = children.getKey();
+                                String[] dateSplit = children.getKey().split(":");
+                                Log.d(TAG, "Deposit date: " + date);
+                                int day = Integer.valueOf(dateSplit[0]);
+                                int month = Integer.valueOf(dateSplit[1]);
+                                int year = Integer.valueOf(dateSplit[2]);
+                                Calendar depositDate = Calendar.getInstance();
+                                depositDate.set(year, month, day);
+                                if (depositDate.before(today)){
+
+                                    //Update with new date
+                                    String idReceiver = children.child("account").getValue(String.class);
+                                    String idSender = snapshot.getKey();
+                                    Context context = homeActivity.this;
+                                    String nextMonth = "1:" + (today.get(Calendar.MONTH)+1) + ":" + today.get(Calendar.YEAR);
+                                    Double amountToSend = children.child("amount").getValue(Double.class);
+
+                                    //Create new child with the date
+                                    transferService.monthlyDeposit(idReceiver, idSender, nextMonth, amountToSend, key);
+
+                                    //Calculate amount of months worth of deposits
+                                    amountToSend += amountToSend * (today.get(Calendar.MONTH) - month);
+                                    //Make deposit
+                                    transferService.transaction(idSender, idReceiver, amountToSend, context, key, "monthly_deposit");
+
+                                    //Remove children
+                                    db.child(key).child(idSender).child("monthly_deposit").child(date).removeValue();
+                                }else {
+
+                                    break;
+                                }
                             }
                         }else {
                             Log.d(TAG, "No monthly deposit requests created");
@@ -170,5 +173,23 @@ public class homeActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    //Go to user settings activity
+    public void showSettings(View v) {
+        Intent intent = new Intent(this, settingsActivity.class);
+        intent.putExtra("Key", key);
+        startActivity(intent);
+    }
+    //Go to transaction activity and expect result from intent
+    public void showTransaction(View v) {
+        Intent intent = new Intent(this, transactionActivity.class);
+        intent.putExtra("Accounts", accountList);
+        intent.putExtra("Key", key);
+        startActivity(intent);
+    }
+
+    public void logout(View v) {
+        finish();
     }
 }

@@ -1,5 +1,6 @@
 package com.example.android_exam_project.Activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -9,10 +10,10 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.android_exam_project.Model.Account;
 import com.example.android_exam_project.R;
+import com.example.android_exam_project.Service.transferService;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,8 +28,8 @@ public class transactionActivity extends AppCompatActivity {
     Spinner fromAccount;
     DatabaseReference db;
     String key, TAG = "TAG";
-    Double receiverBalance;
     ArrayList<Account> accountList = new ArrayList<>();
+    ArrayAdapter arrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,84 +49,24 @@ public class transactionActivity extends AppCompatActivity {
         Intent intent = getIntent();
         accountList = intent.getParcelableArrayListExtra("Accounts");
         key = intent.getStringExtra("Key");
-        Log.d(TAG, "init: " + accountList.toString());
 
-        ArrayAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, accountList);
-        fromAccount.setAdapter(adapter);
+        arrayAdapter = new ArrayAdapter<>(transactionActivity.this, android.R.layout.simple_list_item_1, accountList);
+        fromAccount.setAdapter(arrayAdapter);
     }
 
     public void send(View v) {
         //Get sender account + receiver account + transaction amount
-        final Account accountFrom = (Account) fromAccount.getSelectedItem();
-        final String accountTo = toAccountReg.getText().toString() + " " + toAccountAcc.getText().toString();
-        final Double amountToSend = Double.valueOf(amount.getText().toString());
-        final String accountNumber = accountFrom.getId();
-        final Double senderBalance = accountFrom.getBalance();
+        Account accountFromSpinner = (Account) fromAccount.getSelectedItem();
+        //Receiver id
+        String idReceiver = toAccountReg.getText().toString() + " " + toAccountAcc.getText().toString();
+        //Amount to send
+        Double amountToSend = Double.valueOf(amount.getText().toString());
+        //Sender id
+        String idSender = accountFromSpinner.getId();
+        //Context
+        Context context = transactionActivity.this;
 
-        //Checking if receiver account is bound to this user
-        final String senderAccount = accountNumber.substring(9, 13);
-        final String receiverAccount = accountTo.substring(9, 13);
-        Log.d(TAG, "sender: " + senderAccount + "receiver: " + receiverAccount);
-        if (!accountNumber.equals(accountTo)){
-            db.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        if (snapshot.hasChild(accountTo) && senderAccount.equals(receiverAccount)) {
-                            //Retract amount from sender
-                            db.child(key).child(accountNumber).child("balance").setValue(senderBalance - amountToSend);
-                            String accountId = snapshot.child(accountTo).child("id").getValue(String.class);
-
-                            //Add amount to receiver
-                            receiverBalance = snapshot.child(accountTo).child("balance").getValue(Double.class);
-                            snapshot.child(accountTo).child("balance").getRef().setValue(receiverBalance + amountToSend);
-
-                            Toast toast = Toast.makeText(transactionActivity.this, amountToSend + " DKK was sent to your " + accountId + " account", Toast.LENGTH_SHORT);
-                            toast.show();
-                            Intent returnIntent = new Intent();
-                            setResult(RESULT_OK,returnIntent);
-                            finish();
-                        }
-                        if (snapshot.hasChild(accountTo) && !senderAccount.equals(receiverAccount)) {
-                            //nemId popup
-                            Log.d(TAG, "Sender and receiver are not accounts under the same user");
-                            String receiverKey = snapshot.getKey();
-                            receiverBalance = snapshot.child(accountTo).child("balance").getValue(Double.class);
-                            Intent intent = new Intent(transactionActivity.this, nemidActivity.class);
-                            intent.putExtra("AccountTo", accountTo);
-                            intent.putExtra("AmountToSend", amountToSend);
-                            intent.putExtra("AccountNumber", accountNumber);
-                            intent.putExtra("AccountFromBalance", senderBalance);
-                            intent.putExtra("ReceiverBalance", receiverBalance);
-                            intent.putExtra("ReceiverKey", receiverKey);
-                            intent.putExtra("FromKey", key);
-                            startActivity(intent);
-                            Intent returnIntent = new Intent();
-                            setResult(RESULT_OK,returnIntent);
-                            finish();
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
-        }
-        if (amountToSend > senderBalance){
-            Toast toast = Toast.makeText(transactionActivity.this, "You don't have enough money on this account to make the transaction", Toast.LENGTH_SHORT);
-            toast.show();
-            amount.setText("");
-            amount.requestFocus();
-        }
-        /*if (!snapshot.hasChild(accountTo) && !senderAccount.equals(receiverAccount)){
-            Toast toast = Toast.makeText(transactionActivity.this, "Please enter a valid account to receive the money..", Toast.LENGTH_SHORT);
-            toast.show();
-            toAccountAcc.setText("");
-            toAccountReg.setText("");
-            toAccountReg.requestFocus();
-        }*/
+        transferService.transaction(idSender, idReceiver, amountToSend, context, key, "normal_transfer");
     }
 
     public void back(View v) {

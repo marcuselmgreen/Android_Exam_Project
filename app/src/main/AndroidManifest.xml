@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activity.accountSettingsActivity"></activity>
+        <activity android:name=".Activity.paymentServiceActivity"></activity>
+        <activity android:name=".Activity.accountSettingsActivity" />
         <activity
             android:name=".Activity.nemidActivity"
             android:theme="@style/AppTheme.CustomTheme" />

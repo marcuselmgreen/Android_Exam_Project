@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.example.android_exam_project.Model.Account;
 import com.example.android_exam_project.R;
+import com.example.android_exam_project.Service.transferService;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,7 +40,7 @@ public class accountSettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account_settings);
-
+        //MAKE THIS ACTIVITY AN PAYMENTSERVICE/MONTHLY DEPOSIT OVERVIEW WITH ABILITY TO PAY BILLS MANUALLY
         init();
     }
 
@@ -85,7 +86,13 @@ public class accountSettingsActivity extends AppCompatActivity {
     public void back(View v){
         finish();
     }
+
     public void confirm(View v){
+        /*Intent intent = new Intent(accountSettingsActivity.this, paymentServiceActivity.class);
+        intent.putExtra("Account", account);
+        intent.putExtra("Accounts", accountList);
+        intent.putExtra("Key", key);
+        startActivity(intent);*/
         if (amount.length() > 0){
             //Get date of next payment
             Account accountToDeposit = (Account) deposit_account.getSelectedItem();
@@ -95,7 +102,10 @@ public class accountSettingsActivity extends AppCompatActivity {
             String nextMonth = "1:" + today.get(Calendar.MONTH) + ":" + today.get(Calendar.YEAR);
             Log.d(TAG, "Date: " + nextMonth + ", Amount: " + amountToDeposit);
             //Save to database
-            monthlyDeposit(accountToDeposit, nextMonth, amountToDeposit);
+            transferService.monthlyDeposit(accountToDeposit.getId(), account.getId(), nextMonth, amountToDeposit, key);
+            Toast toast = Toast.makeText(accountSettingsActivity.this, "Monthly deposit of " + amountToDeposit + " DKK has been registered to your " + accountToDeposit.getType() + " account!", Toast.LENGTH_SHORT);
+            toast.show();
+            finish();
         } else {
             Toast toast = Toast.makeText(accountSettingsActivity.this, "Please insert a monthly deposit amount", Toast.LENGTH_SHORT);
             toast.show();
@@ -103,15 +113,8 @@ public class accountSettingsActivity extends AppCompatActivity {
             amount.requestFocus();
         }
     }
+
     public void paymentService(View v){
 
-    }
-
-    public void monthlyDeposit(Account accountToDeposit, String nextMonth, Double amountToDeposit){
-        db.child(key).child(account.getId()).child("monthly_deposit").child(accountToDeposit.getType()).child("date").setValue(nextMonth);
-        db.child(key).child(account.getId()).child("monthly_deposit").child(accountToDeposit.getType()).child("amount").setValue(amountToDeposit);
-        Toast toast = Toast.makeText(accountSettingsActivity.this, "Monthly deposit of " + amountToDeposit + " DKK has been registered to your " + accountToDeposit.getType() + " account!", Toast.LENGTH_SHORT);
-        toast.show();
-        finish();
     }
 }

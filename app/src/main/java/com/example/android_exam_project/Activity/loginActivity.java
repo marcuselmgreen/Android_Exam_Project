@@ -59,8 +59,9 @@ public class loginActivity extends AppCompatActivity {
                         intent.putExtra("Key", key);
                         startActivity(intent);
                         break;
+                        //Check for number
                     } else {
-                        Log.d(TAG, "onDataChange: " + snapshot.child("cpr").getValue(String.class) + ", " + snapshot.child("password").getValue(String.class) + ", User input: " + cpr.getText().toString() + ", " + password.getText().toString());
+                        Log.d(TAG, "User input: " + cpr.getText().toString() + ", " + password.getText().toString());
                         Toast toast = Toast.makeText(loginActivity.this, "Wrong cpr or password! Try again", Toast.LENGTH_SHORT);
                         toast.show();
                         cpr.setText("");

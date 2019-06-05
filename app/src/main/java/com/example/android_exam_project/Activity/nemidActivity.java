@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -22,8 +21,8 @@ public class nemidActivity extends AppCompatActivity {
 
     TextView cpr, password, key, keycardnumber;
     Button back, submit;
-    String accountTo, accountNumber, receiverKey, fromKey, TAG = "TAG";
-    Double accountFromBalance, receiverBalance, amountToSend;
+    String idReceiver, idSender, receiverKey, senderKey, TAG = "TAG";
+    Double senderBalance, receiverBalance, amountToSend;
     DatabaseReference db;
 
     @Override
@@ -44,13 +43,13 @@ public class nemidActivity extends AppCompatActivity {
         db = FirebaseDatabase.getInstance().getReference("users");
 
         Intent intent = getIntent();
-        accountNumber = intent.getStringExtra("AccountNumber");
-        accountTo = intent.getStringExtra("AccountTo");
+        idSender = intent.getStringExtra("IdSender");
+        idReceiver = intent.getStringExtra("IdReceiver");
         amountToSend = intent.getDoubleExtra("AmountToSend", 0);
-        accountFromBalance = intent.getDoubleExtra("AccountFromBalance", 0);
+        senderBalance = intent.getDoubleExtra("SenderBalance", 0);
         receiverBalance = intent.getDoubleExtra("ReceiverBalance", 0);
         receiverKey = intent.getStringExtra("ReceiverKey");
-        fromKey = intent.getStringExtra("FromKey");
+        senderKey = intent.getStringExtra("SenderKey");
 
 
         String number = String.valueOf(Math.round(Math.random() * (9999 - 1000) + 1000));
@@ -66,7 +65,7 @@ public class nemidActivity extends AppCompatActivity {
     }
 
     public void submit(View v){
-        db.child(fromKey).addListenerForSingleValueEvent(new ValueEventListener() {
+        db.child(senderKey).addListenerForSingleValueEvent(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -74,12 +73,13 @@ public class nemidActivity extends AppCompatActivity {
                 String userPassword = password.getText().toString();
                 if (dataSnapshot.child("cpr").getValue(String.class).equals(userCpr) && dataSnapshot.child("password").getValue(String.class).equals(userPassword)) {
                     if (Integer.parseInt(key.getText().toString()) == 123456) {
-                        //Retract amount from sender
-                        db.child(fromKey).child(accountNumber).child("balance").setValue(accountFromBalance - amountToSend);
+                        //Transfer money
+                        db.child(senderKey).child(idSender).child("balance").setValue(senderBalance - amountToSend);
+                        //String accountId = snapshot.child(accountTo).child("id").getValue(String.class);
 
                         //Add amount to receiver
-                        Log.d(TAG, "Receiver balance: " + receiverBalance);
-                        db.child(receiverKey).child(accountTo).child("balance").getRef().setValue(receiverBalance + amountToSend);
+                        db.child(receiverKey).child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
+
                         Toast toast = Toast.makeText(nemidActivity.this, amountToSend + " DKK was transferred", Toast.LENGTH_SHORT);
                         toast.show();
 
