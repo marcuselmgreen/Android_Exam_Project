@@ -86,17 +86,13 @@ public class accountSettingsActivity extends AppCompatActivity {
     }
 
     public void confirm(View v){
-        /*Intent intent = new Intent(accountSettingsActivity.this, paymentServiceActivity.class);
-        intent.putExtra("Account", account);
-        intent.putExtra("Accounts", accountList);
-        intent.putExtra("Key", key);
-        startActivity(intent);*/
         if (amount.length() > 0){
             //Get date of next payment
             Account accountToDeposit = (Account) deposit_account.getSelectedItem();
             Double amountToDeposit = Double.valueOf(amount.getText().toString());
             Calendar today = Calendar.getInstance();
-            today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 1);
+            //We need the next month from today and since Calendar.MONTH returns the current month minus 1 we add 2
+            today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 2);
             String nextMonth = "1:" + today.get(Calendar.MONTH) + ":" + today.get(Calendar.YEAR);
             Log.d(TAG, "Date: " + nextMonth + ", Amount: " + amountToDeposit);
             //Save to database

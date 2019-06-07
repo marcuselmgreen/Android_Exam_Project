@@ -80,9 +80,9 @@ public class paymentServiceActivity extends AppCompatActivity {
                         Iterable<DataSnapshot> monthlyDepositChildren = snapshot.child("payment_service").getChildren();
                         int count = 0;
                         for (DataSnapshot children : monthlyDepositChildren) {
-                            String date = children.getKey();
+                            String account = children.getKey();
                             Double amount = children.child("amount").getValue(Double.class);
-                            String account = children.child("account").getValue(String.class);
+                            String date = children.child("date").getValue(String.class);
                             String description = children.child("description").getValue(String.class);
                             String autopay = children.child("autopay").getValue(String.class);
                             String idSender = snapshot.getKey();
@@ -143,23 +143,21 @@ public class paymentServiceActivity extends AppCompatActivity {
                             String idReceiver = paymentServiceList.get(i).getAccount();
                             Context context = paymentServiceActivity.this;
                             String nextMonth = day + ":" + (today.get(Calendar.MONTH) + 1) + ":" + today.get(Calendar.YEAR);
-                            Double amountToSend = dataSnapshot.child(idSender).child("payment_service").child(date).child("amount").getValue(Double.class);
+                            Double amountToSend = dataSnapshot.child(idSender).child("payment_service").child(idReceiver).child("amount").getValue(Double.class);
                             String autopay = paymentServiceList.get(i).getAutopay();
                             String description = paymentServiceList.get(i).getDescription();
 
-                            //Create new child with the date
-                            transferService.paymentService(idReceiver, idSender, nextMonth, amountToSend, key, autopay, description);
-
                             //Calculate amount of months worth of deposits
-                            amountToSend += amountToSend * (today.get(Calendar.MONTH) - month);
+                            Double amountToSendCalc = amountToSend * (today.get(Calendar.MONTH) - month);
 
                             //Make transfer
-                            transferService.transaction(idSender, idReceiver, amountToSend, context, key, "payment_service");
+                            transferService.transaction(idSender, idReceiver, amountToSendCalc, context, key, "payment_service");
 
                             //Remove children
-                            if (dataSnapshot.child(idSender).child("payment_service").child(date).child("account").getValue(String.class).equals(idReceiver)) {
-                                db.child(key).child(idSender).child("payment_service").child(date).removeValue();
-                            }
+                            db.child(key).child(idSender).child("payment_service").child(idReceiver).removeValue();
+
+                            //Create new child with the date
+                            transferService.paymentService(idReceiver, idSender, nextMonth, amountToSend, key, autopay, description);
                         }
                     }
                 }
