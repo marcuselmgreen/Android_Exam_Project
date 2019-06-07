@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activity.newPaymentServiceActivity">
+
+    <Spinner
+        android:id="@+id/accounts"
+        android:layout_width="151dp"
+        android:layout_height="26dp"
+        android:layout_marginStart="130dp"
+        android:layout_marginLeft="130dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginEnd="130dp"
+        android:layout_marginRight="130dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/payment_service_txt" />
+
+    <TextView
+        android:id="@+id/payment_service_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="176dp"
+        android:layout_marginLeft="176dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="176dp"
+        android:layout_marginRight="176dp"
+        android:text="@string/add_new_payment_service"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/account_statement_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="176dp"
+        android:layout_marginLeft="176dp"
+        android:layout_marginTop="34dp"
+        android:layout_marginEnd="176dp"
+        android:layout_marginRight="176dp"
+        android:text="@string/account_statement"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/accounts" />
+
+    <EditText
+        android:id="@+id/account_statement_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="98dp"
+        android:layout_marginLeft="98dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="100dp"
+        android:layout_marginRight="100dp"
+        android:ems="10"
+        android:inputType="textShortMessage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/account_statement_txt" />
+
+    <EditText
+        android:id="@+id/amount_input"
+        android:layout_width="106dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="67dp"
+        android:layout_marginLeft="67dp"
+        android:layout_marginTop="47dp"
+        android:layout_marginEnd="25dp"
+        android:layout_marginRight="25dp"
+        android:ems="10"
+        android:hint="@string/amount"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/date_input"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/account_statement_input" />
+
+    <EditText
+        android:id="@+id/date_input"
+        android:layout_width="141dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="47dp"
+        android:layout_marginEnd="72dp"
+        android:layout_marginRight="72dp"
+        android:ems="10"
+        android:hint="@string/dd_mm_yyyy"
+        android:inputType="date"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/amount_input"
+        app:layout_constraintTop_toBottomOf="@+id/account_statement_input" />
+
+    <EditText
+        android:id="@+id/card_info_1"
+        android:layout_width="145dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="90dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/plus"
+        app:layout_constraintStart_toEndOf="@+id/lesser_than"
+        app:layout_constraintTop_toBottomOf="@+id/amount_input" />
+
+    <EditText
+        android:id="@+id/card_type_input"
+        android:layout_width="51dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="90dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/lesser_than"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/amount_input" />
+
+    <EditText
+        android:id="@+id/card_info_2"
+        android:layout_width="103dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="90dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintEnd_toStartOf="@+id/lesser_than2"
+        app:layout_constraintStart_toEndOf="@+id/plus"
+        app:layout_constraintTop_toBottomOf="@+id/date_input" />
+
+    <TextView
+        android:id="@+id/lesser_than2"
+        android:layout_width="32dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="90dp"
+        android:text="@string/lesser_than"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/card_info_2"
+        app:layout_constraintTop_toBottomOf="@+id/date_input" />
+
+    <TextView
+        android:id="@+id/plus"
+        android:layout_width="32dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="90dp"
+        android:text="@string/plus"
+        app:layout_constraintEnd_toStartOf="@+id/card_info_2"
+        app:layout_constraintStart_toEndOf="@+id/card_info_1"
+        app:layout_constraintTop_toBottomOf="@+id/date_input" />
+
+    <TextView
+        android:id="@+id/lesser_than"
+        android:layout_width="32dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="90dp"
+        android:text="@string/lesser_than"
+        app:layout_constraintEnd_toStartOf="@+id/card_info_1"
+        app:layout_constraintStart_toEndOf="@+id/card_type_input"
+        app:layout_constraintTop_toBottomOf="@+id/amount_input" />
+
+    <CheckBox
+        android:id="@+id/autopay_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="157dp"
+        android:layout_marginLeft="157dp"
+        android:layout_marginTop="75dp"
+        android:layout_marginEnd="158dp"
+        android:layout_marginRight="158dp"
+        android:text="@string/autopay"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/card_info_1" />
+
+    <Button
+        android:id="@+id/confirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="41dp"
+        android:layout_marginLeft="41dp"
+        android:layout_marginTop="177dp"
+        android:layout_marginEnd="75dp"
+        android:layout_marginRight="75dp"
+        android:layout_marginBottom="93dp"
+        android:text="@string/confirm"
+        android:onClick="confirm"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/card_info_1" />
+
+    <Button
+        android:id="@+id/back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="75dp"
+        android:layout_marginLeft="75dp"
+        android:layout_marginTop="177dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginRight="48dp"
+        android:layout_marginBottom="93dp"
+        android:text="@string/back"
+        android:onClick="back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/confirm"
+        app:layout_constraintTop_toBottomOf="@+id/card_info_2" />
+</android.support.constraint.ConstraintLayout>

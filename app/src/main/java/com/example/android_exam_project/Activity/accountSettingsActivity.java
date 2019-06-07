@@ -40,7 +40,6 @@ public class accountSettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account_settings);
-        //MAKE THIS ACTIVITY AN PAYMENTSERVICE/MONTHLY DEPOSIT OVERVIEW WITH ABILITY TO PAY BILLS MANUALLY
         init();
     }
 
@@ -66,11 +65,10 @@ public class accountSettingsActivity extends AppCompatActivity {
         type.setText(account.getType());
         Log.d(TAG, "init: " + account.getId());
 
-        if (account.getType().equals("default")){
+        if (account.getType().equals("default") || account.getType().equals("business")){
             confirm.setVisibility(View.VISIBLE);
             budget_txt.setVisibility(View.VISIBLE);
             amount.setVisibility(View.VISIBLE);
-            payment_service.setVisibility(View.VISIBLE);
             deposit_account.setVisibility(View.VISIBLE);
 
             //Set spinner with budget or savings account
@@ -112,9 +110,5 @@ public class accountSettingsActivity extends AppCompatActivity {
             amount.setText("");
             amount.requestFocus();
         }
-    }
-
-    public void paymentService(View v){
-
     }
 }

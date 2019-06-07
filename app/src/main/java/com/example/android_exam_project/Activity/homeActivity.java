@@ -30,7 +30,7 @@ public class homeActivity extends AppCompatActivity {
 
     private ArrayList<Account> accountList = new ArrayList<>();
 
-    Button settings;
+    Button settings, newAccount, paymentService;
     String key, TAG = "TAG";
     ListView accounts;
     DatabaseReference db;
@@ -56,6 +56,8 @@ public class homeActivity extends AppCompatActivity {
     private void init() {
         settings = findViewById(R.id.settings);
         accounts = findViewById(R.id.accounts);
+        paymentService = findViewById(R.id.payment_service);
+        newAccount = findViewById(R.id.new_account);
         Intent intent = getIntent();
         key = intent.getStringExtra("Key");
         Log.d(TAG, "init: " + key);
@@ -122,51 +124,22 @@ public class homeActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Calendar today = Calendar.getInstance();
+                today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 1);
+                Context context = homeActivity.this;
                 //Test if method works
                 //today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 8);
-                //Log.d(TAG, "date today: " + today);
+                Log.d(TAG, "date today: " + today);
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        if (snapshot.hasChild("monthly_deposit")){
-                            //Get each date registered for monthly deposit from database and convert to Calendar format
-                            Iterable<DataSnapshot> monthlyDepositChildren = snapshot.child("monthly_deposit").getChildren();
-                            for (DataSnapshot children : monthlyDepositChildren){
-                                String date = children.getKey();
-                                String[] dateSplit = children.getKey().split(":");
-                                Log.d(TAG, "Deposit date: " + date);
-                                int day = Integer.valueOf(dateSplit[0]);
-                                int month = Integer.valueOf(dateSplit[1]);
-                                int year = Integer.valueOf(dateSplit[2]);
-                                Calendar depositDate = Calendar.getInstance();
-                                depositDate.set(year, month, day);
-                                if (depositDate.before(today)){
-
-                                    //Update with new date
-                                    String idReceiver = children.child("account").getValue(String.class);
-                                    String idSender = snapshot.getKey();
-                                    Context context = homeActivity.this;
-                                    String nextMonth = "1:" + (today.get(Calendar.MONTH)+1) + ":" + today.get(Calendar.YEAR);
-                                    Double amountToSend = children.child("amount").getValue(Double.class);
-
-                                    //Create new child with the date
-                                    transferService.monthlyDeposit(idReceiver, idSender, nextMonth, amountToSend, key);
-
-                                    //Calculate amount of months worth of deposits
-                                    amountToSend += amountToSend * (today.get(Calendar.MONTH) - month);
-                                    //Make deposit
-                                    transferService.transaction(idSender, idReceiver, amountToSend, context, key, "monthly_deposit");
-
-                                    //Remove children
-                                    db.child(key).child(idSender).child("monthly_deposit").child(date).removeValue();
-                                }else {
-
-                                    break;
-                                }
-                            }
-                        }else {
-                            Log.d(TAG, "No monthly deposit requests created");
-                        }
+                    if (snapshot.hasChild("monthly_deposit")){
+                        transferService.autoTransfer(snapshot, "monthly_deposit", today, key, context);
+                    }
+                    if (snapshot.hasChild("payment_service")){
+                        transferService.autoTransfer(snapshot, "payment_service", today, key, context);
+                    }else {
+                        Log.d(TAG, "No monthly deposit or payment service requests created");
                     }
                 }
+            }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -187,6 +160,20 @@ public class homeActivity extends AppCompatActivity {
         intent.putExtra("Accounts", accountList);
         intent.putExtra("Key", key);
         startActivity(intent);
+    }
+
+    public void showPaymentService(View v) {
+        Intent intent = new Intent(this, paymentServiceActivity.class);
+        intent.putExtra("Accounts", accountList);
+        intent.putExtra("Key", key);
+        startActivity(intent);
+    }
+
+    public void showNewAccount(View v) {
+        /*Intent intent = new Intent(this, newAccountActivity.class);
+        intent.putExtra("Accounts", accountList);
+        intent.putExtra("Key", key);
+        startActivity(intent);*/
     }
 
     public void logout(View v) {

@@ -9,6 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android_exam_project.Activity.accountSettingsActivity;
+import com.example.android_exam_project.Activity.homeActivity;
 import com.example.android_exam_project.Activity.nemidActivity;
 import com.example.android_exam_project.Activity.transactionActivity;
 import com.example.android_exam_project.Model.Account;
@@ -17,6 +18,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.Calendar;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -77,7 +80,8 @@ public class transferService {
                                 snapshot.child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
                             }
                             if (transferType.equals("payment_service")) {
-
+                                //We don't have access to the receiver account so we only retract amount from the sender
+                                db.child(key).child(idSender).child("balance").setValue(senderBalance - amountToSend);
                             }
                         }
                     } else {
@@ -117,5 +121,56 @@ public class transferService {
     public static void monthlyDeposit(String idReceiver, String idSender, String nextMonth, Double amountToDeposit, String key){
         db.child(key).child(idSender).child("monthly_deposit").child(nextMonth).child("account").setValue(idReceiver);
         db.child(key).child(idSender).child("monthly_deposit").child(nextMonth).child("amount").setValue(amountToDeposit);
+    }
+
+    public static void paymentService(String idReceiver, String idSender, String nextMonth, Double amountToDeposit, String key, String autoPay, String description){
+        //Edits services with same due dates
+        db.child(key).child(idSender).child("payment_service").child(nextMonth).child("account").setValue(idReceiver);
+        db.child(key).child(idSender).child("payment_service").child(nextMonth).child("amount").setValue(amountToDeposit);
+        db.child(key).child(idSender).child("payment_service").child(nextMonth).child("autopay").setValue(autoPay);
+        db.child(key).child(idSender).child("payment_service").child(nextMonth).child("description").setValue(description);
+    }
+
+    public static void autoTransfer(DataSnapshot snapshot, String transferType, Calendar today, String key, Context context){
+        //Get each date registered for monthly deposit from database and convert to Calendar format
+        Iterable<DataSnapshot> monthlyDepositChildren = snapshot.child(transferType).getChildren();
+        for (DataSnapshot children : monthlyDepositChildren){
+            String date = children.getKey();
+            String[] dateSplit = children.getKey().split(":");
+            Log.d(TAG, "Deposit date: " + date);
+            int day = Integer.valueOf(dateSplit[0]);
+            int month = Integer.valueOf(dateSplit[1] + 1);
+            int year = Integer.valueOf(dateSplit[2]);
+            Calendar depositDate = Calendar.getInstance();
+            depositDate.set(year, month, day);
+            if (depositDate.before(today)){
+
+                //Update with new date
+                String idReceiver = children.child("account").getValue(String.class);
+                String idSender = snapshot.getKey();
+                Double amountToSend = children.child("amount").getValue(Double.class);
+
+                //Create new child with the date
+                if (transferType.equals("monthly_deposit")){
+                    String nextMonth = "1:" + (today.get(Calendar.MONTH)+1) + ":" + today.get(Calendar.YEAR);
+                    transferService.monthlyDeposit(idReceiver, idSender, nextMonth, amountToSend, key);
+                }else {
+                    String nextMonth = day + (today.get(Calendar.MONTH)+1) + ":" + today.get(Calendar.YEAR);
+                    String description = children.child("description").getValue(String.class);
+                    transferService.paymentService(idReceiver, idSender, nextMonth, amountToSend, key, "yes", description);
+                }
+
+                //Calculate amount of months worth of deposits
+                amountToSend += amountToSend * (today.get(Calendar.MONTH) - month);
+                //Make deposit
+                transferService.transaction(idSender, idReceiver, amountToSend, context, key, transferType);
+
+                //Remove children
+                db.child(key).child(idSender).child(transferType).child(date).removeValue();
+            }else {
+
+                break;
+            }
+        }
     }
 }

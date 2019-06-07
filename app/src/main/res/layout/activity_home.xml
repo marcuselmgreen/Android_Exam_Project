@@ -63,9 +63,36 @@
         android:layout_marginTop="20dp"
         android:layout_marginEnd="160dp"
         android:layout_marginRight="160dp"
-        android:text="@string/transfer"
         android:onClick="showTransaction"
+        android:text="@string/transfer"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/payment_service" />
+
+    <Button
+        android:id="@+id/payment_service"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="131dp"
+        android:layout_marginLeft="131dp"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="131dp"
+        android:layout_marginRight="131dp"
+        android:text="@string/payment_service"
+        android:onClick="showPaymentService"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/accounts" />
+
+    <Button
+        android:id="@+id/new_account"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/new_account"
+        android:onClick="showNewAccount"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/accounts" />
 </android.support.constraint.ConstraintLayout>

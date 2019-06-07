@@ -36,4 +36,13 @@
     <string name="confirm">Confirm</string>
     <string name="budget_savings_account_monthly_transfer_amount">Budget/Savings account monthly transfer amount</string>
     <string name="payment_service">Payment Service</string>
+    <string name="new_account">New Account</string>
+    <string name="current_payment_services">Current payment services</string>
+    <string name="pay_bills">Pay Bills</string>
+    <string name="add_new_service">Add New Service</string>
+    <string name="lesser_than"><![CDATA[<]]></string>
+    <string name="plus">+</string>
+    <string name="autopay">Autopay</string>
+    <string name="account_statement">Account statement</string>
+    <string name="add_new_payment_service">Add new payment service</string>
 </resources>
