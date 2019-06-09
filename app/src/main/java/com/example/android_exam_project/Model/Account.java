@@ -1,7 +1,12 @@
 package com.example.android_exam_project.Model;
 
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.RequiresApi;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class Account implements Parcelable {
     private String id;
@@ -14,8 +19,8 @@ public class Account implements Parcelable {
         this.type = type;
     }
 
-    public Account(String id, double balance) {
-        this.id = id;
+    public Account(String type, double balance) {
+        this.type = type;
         this.balance = balance;
     }
 

@@ -2,8 +2,10 @@ package com.example.android_exam_project.Activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +22,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
 public class transactionActivity extends AppCompatActivity {
@@ -30,6 +34,7 @@ public class transactionActivity extends AppCompatActivity {
     String key, TAG = "TAG";
     ArrayList<Account> accountList = new ArrayList<>();
     ArrayAdapter arrayAdapter;
+    long age;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +54,8 @@ public class transactionActivity extends AppCompatActivity {
         Intent intent = getIntent();
         accountList = intent.getParcelableArrayListExtra("Accounts");
         key = intent.getStringExtra("Key");
+
+        checkPension();
 
         arrayAdapter = new ArrayAdapter<>(transactionActivity.this, android.R.layout.simple_list_item_1, accountList);
         fromAccount.setAdapter(arrayAdapter);
@@ -75,4 +82,31 @@ public class transactionActivity extends AppCompatActivity {
         finish();
     }
 
+    //Check age of user, if old enough, they get access to withdraw from pension account
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void checkPension() {
+        //Check age and remove pension account from spinner
+        for (final Account account : accountList) {
+            if (account.getType().equals("pension")) {
+                db.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        String dob = dataSnapshot.child("dateOfBirth").getValue(String.class);
+                        String[] dobSplit = dob.split("/");
+                        LocalDate from = LocalDate.of(Integer.valueOf(dobSplit[2]), Integer.valueOf(dobSplit[1]), Integer.valueOf(dobSplit[0]));
+                        LocalDate today = LocalDate.now();
+                        age = ChronoUnit.YEARS.between(from, today);
+                        if (age < 77){
+                            accountList.remove(account);
+                            Log.d(TAG, "Pension account removed!");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    }
+                });
+            }
+        }
+    }
 }

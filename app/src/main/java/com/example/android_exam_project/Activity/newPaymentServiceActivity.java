@@ -68,6 +68,7 @@ public class newPaymentServiceActivity extends AppCompatActivity {
 
     public void confirm(View v){
         //Check user inputs
+        //More checks(month over 12 etc.)
         if (date.getText().toString().length() != 10 && !date.getText().toString().matches("^[0-3]?[0-9]/[0-3]?[0-9]/(?:[0-9]{2})?[0-9]{2}$")) {
             Toast toast = Toast.makeText(this, "Date must of format dd/mm/yyyy!", Toast.LENGTH_SHORT);
             toast.show();

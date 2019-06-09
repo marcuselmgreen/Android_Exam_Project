@@ -150,13 +150,14 @@ public class registerActivity extends AppCompatActivity {
         //Create unique account id
         //Alt efter hvilken bank der ligger tættest på, bestemmes regnummeret
         long regNumber = 2055;
-        long accountNumber = regNumber + Math.round(Math.random() * (9999 - 1000) + 1000);
+        long accountId = regNumber + Math.round(Math.random() * (9999 - 1000) + 1000);
 
-        Account defaultAccount = new Account("default", 0);
-        Account budgetAccount = new Account("budget", 0);
+        Account defaultAccount = new Account("default", 0.0);
+        Account budgetAccount = new Account("budget", 0.0);
 
-        db.child(key).child(regNumber + " " + regNumber + accountNumber + Math.round(Math.random() * (99 - 10) + 10)).setValue(defaultAccount);
-        db.child(key).child(regNumber + " " + regNumber + accountNumber + Math.round(Math.random() * (99 - 10) + 10)).setValue(budgetAccount);
+        db.child(key).child(regNumber + " " + regNumber + accountId + 1).setValue(defaultAccount);
+        db.child(key).child(regNumber + " " + regNumber + accountId + 2).setValue(budgetAccount);
+        db.child(key).child("accountId").setValue(accountId);
     }
 
     public void back(View v){

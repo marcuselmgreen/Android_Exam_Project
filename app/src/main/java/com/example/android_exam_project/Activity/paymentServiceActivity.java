@@ -122,17 +122,16 @@ public class paymentServiceActivity extends AppCompatActivity {
 
                 //Test if method works
                 //today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 4);
-                Log.d(TAG, "date today: " + today);
                 for (int i = 0; i < paymentServiceList.size(); i++) {
                     Log.d(TAG, "onDataChange: Checking accounts");
                     String date = paymentServiceList.get(i).getDate();
                     String[] dateSplit = date.split(":");
                     int day = Integer.valueOf(dateSplit[0]);
-                    int month = Integer.valueOf(dateSplit[1]) + 1;
+                    int month = Integer.valueOf(dateSplit[1]); //+1
                     int year = Integer.valueOf(dateSplit[2]);
                     Calendar dueDate = Calendar.getInstance();
                     dueDate.set(year, month, day);
-                    Log.d(TAG, "onDataChange: Date today: " + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.MONTH) + ", Date due: " + date);
+                    Log.d(TAG, "onDataChange: Date today: " + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.MONTH) + ", Date due: " + dueDate.get(Calendar.DAY_OF_MONTH) + "/" + dueDate.get(Calendar.MONTH));
                     if (dueDate.before(today) && paymentServiceList.get(i).getAutopay().equals("no")) {
                         Log.d(TAG, "onDataChange: Checking date");
                         String idSender = paymentServiceList.get(i).getIdSender();
@@ -148,7 +147,12 @@ public class paymentServiceActivity extends AppCompatActivity {
                             String description = paymentServiceList.get(i).getDescription();
 
                             //Calculate amount of months worth of deposits
-                            Double amountToSendCalc = amountToSend * (today.get(Calendar.MONTH) - month);
+                            //We need to check if the dueDate month is the same as the current month or it will equal 0
+                            Double amountToSendCalc = amountToSend;
+                            if (today.get(Calendar.MONTH)-month != 0){
+                                amountToSendCalc = amountToSend * (today.get(Calendar.MONTH) - month);
+                                Log.d(TAG, "onDataChange: AmountToSendCalc: " + amountToSendCalc);
+                            }
 
                             //Make transfer
                             transferService.transaction(idSender, idReceiver, amountToSendCalc, context, key, "payment_service");

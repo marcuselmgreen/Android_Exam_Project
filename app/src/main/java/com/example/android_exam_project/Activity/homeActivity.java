@@ -2,9 +2,11 @@ package com.example.android_exam_project.Activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.constraint.solver.widgets.Snapshot;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -23,6 +25,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -31,7 +36,7 @@ public class homeActivity extends AppCompatActivity {
     private ArrayList<Account> accountList = new ArrayList<>();
 
     Button settings, newAccount, paymentService;
-    String key, TAG = "TAG";
+    String key, accountId, TAG = "TAG";
     ListView accounts;
     DatabaseReference db;
     ArrayAdapter arrayAdapter;
@@ -88,9 +93,9 @@ public class homeActivity extends AppCompatActivity {
                  for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                      //Check if values are available in database and create an account with these values
                      if (snapshot.child("balance").getValue() != null) {
-                         String id = snapshot.child("id").getRef().getParent().getKey();
+                         String id = snapshot.child("type").getRef().getParent().getKey();
                          Double balance = Double.valueOf(snapshot.child("balance").getValue(Long.class));
-                         String type = String.valueOf(snapshot.child("id").getValue());
+                         String type = String.valueOf(snapshot.child("type").getValue());
                          Account account = new Account(id, balance, type);
                          //If account does not exist in accountList, then add and show in listView
                          if (!accountList.contains(account) && accountList.size() == count) {
@@ -126,9 +131,9 @@ public class homeActivity extends AppCompatActivity {
                 Calendar today = Calendar.getInstance();
                 today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 1);
                 Context context = homeActivity.this;
+                Log.d(TAG, "onDataChange: Date today: " + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.MONTH));
                 //Test if method works
                 //today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 8);
-                Log.d(TAG, "date today: " + today);
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (snapshot.hasChild("monthly_deposit")){
                         transferService.autoTransfer(snapshot, "monthly_deposit", today, key, context);
@@ -170,10 +175,10 @@ public class homeActivity extends AppCompatActivity {
     }
 
     public void showNewAccount(View v) {
-        /*Intent intent = new Intent(this, newAccountActivity.class);
-        intent.putExtra("Accounts", accountList);
+        Intent intent = new Intent(this, newAccountActivity.class);
+        intent.putExtra("AccountId", accountId);
         intent.putExtra("Key", key);
-        startActivity(intent);*/
+        startActivity(intent);
     }
 
     public void logout(View v) {

@@ -27,12 +27,6 @@ public class transferService {
     private static DatabaseReference db = FirebaseDatabase.getInstance().getReference("users");
     private static String TAG = "TAG";
 
-    //To transfer money from one account to another
-    //1. idsender
-    //2. idreceiver
-    //3. amount to send
-    //4. key
-
     public static void transaction(final String idSender, final String idReceiver, final Double amountToSend, final Context context, final String key, final String transferType) {
         //Checking if receiver account is bound to this user
         final String senderAccount = idSender.substring(9, 13);
@@ -42,11 +36,12 @@ public class transferService {
             db.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    Log.d(TAG, "idSender: " + idSender + "senderBalance: " + dataSnapshot.child(idSender).child("balance").getValue(Double.class));
+                    Log.d(TAG, "idSender: " + idSender + "senderBalance: " + dataSnapshot.child(key).child(idSender).child("balance").getValue(Double.class));
                     Double senderBalance = dataSnapshot.child(key).child(idSender).child("balance").getValue(Double.class);
                     if (amountToSend < senderBalance) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            if (snapshot.hasChild(idReceiver) && senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer")) {
+                            String type = snapshot.child(idReceiver).child("type").getValue(String.class);
+                            if (snapshot.hasChild(idReceiver) && senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer") && !type.equals("pension")) {
                                 //Transfer money
                                 db.child(key).child(idSender).child("balance").setValue(senderBalance - amountToSend);
 
@@ -57,7 +52,7 @@ public class transferService {
                                 Toast toast = Toast.makeText(context, amountToSend + " DKK was sent to " + idReceiver + "!", Toast.LENGTH_SHORT);
                                 toast.show();
                             }
-                            if (snapshot.hasChild(idReceiver) && !senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer")) {
+                            if (snapshot.hasChild(idReceiver) && !senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer") || type.equals("pension")) {
                                 //nemId popup
                                 String receiverKey = snapshot.getKey();
                                 Double receiverBalance = snapshot.child(idReceiver).child("balance").getValue(Double.class);
@@ -80,6 +75,7 @@ public class transferService {
                                 snapshot.child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
                             }
                             if (transferType.equals("payment_service")) {
+                                Log.d(TAG, "onDataChange: sender balance new: " + (senderBalance-amountToSend));
                                 //We don't have access to the receiver account so we only retract amount from the sender
                                 db.child(key).child(idSender).child("balance").setValue(senderBalance - amountToSend);
                             }
@@ -138,11 +134,12 @@ public class transferService {
             String[] dateSplit = date.split(":");
             Log.d(TAG, "Deposit date: " + date);
             int day = Integer.valueOf(dateSplit[0]);
-            int month = Integer.valueOf(dateSplit[1] + 1);
+            int month = Integer.valueOf(dateSplit[1]);//+1
             int year = Integer.valueOf(dateSplit[2]);
             Calendar depositDate = Calendar.getInstance();
             depositDate.set(year, month, day);
-            if (depositDate.before(today)){
+            Log.d(TAG, "autoPay: " + children.child("autopay").toString());
+            if (depositDate.before(today) && children.child("autopay").getValue(String.class).equals("yes")) {
 
                 //Update with new date
                 String idReceiver = children.getKey();
@@ -150,8 +147,11 @@ public class transferService {
                 Double amountToSend = children.child("amount").getValue(Double.class);
 
                 //Calculate amount of months worth of deposits
-                Double amountToSendCalc = amountToSend * (today.get(Calendar.MONTH) - month);
-
+                //We need to check if the dueDate month is the same as the current month or it will equal 0
+                Double amountToSendCalc = amountToSend;
+                if (today.get(Calendar.MONTH)-month != 0){
+                    amountToSendCalc = amountToSend * (today.get(Calendar.MONTH) - month);
+                }
                 //Make deposit
                 transferService.transaction(idSender, idReceiver, amountToSendCalc, context, key, transferType);
 
@@ -159,17 +159,14 @@ public class transferService {
                 db.child(key).child(idSender).child(transferType).child(idReceiver).removeValue();
 
                 //Create new child with the date
-                if (transferType.equals("monthly_deposit")){
-                    String nextMonth = "1:" + (today.get(Calendar.MONTH)+1) + ":" + today.get(Calendar.YEAR);
+                if (transferType.equals("monthly_deposit")) {
+                    String nextMonth = day + ":" + (today.get(Calendar.MONTH) + 1) + ":" + today.get(Calendar.YEAR);
                     transferService.monthlyDeposit(idReceiver, idSender, nextMonth, amountToSend, key);
-                }else {
-                    String nextMonth = day + (today.get(Calendar.MONTH)+1) + ":" + today.get(Calendar.YEAR);
+                } else {
+                    String nextMonth = day + ":" + (today.get(Calendar.MONTH) + 1) + ":" + today.get(Calendar.YEAR);
                     String description = children.child("description").getValue(String.class);
                     transferService.paymentService(idReceiver, idSender, nextMonth, amountToSend, key, "yes", description);
                 }
-            }else {
-
-                break;
             }
         }
     }
