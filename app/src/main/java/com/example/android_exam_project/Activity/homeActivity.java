@@ -102,7 +102,7 @@ public class homeActivity extends AppCompatActivity {
                              Log.d(TAG, "onDataChange: " + id + ", balance: " + snapshot.child("balance").getValue());
                              accountList.add(account);
                              //Might not work when adding more accounts
-                             arrayAdapter = new ArrayAdapter(homeActivity.this, android.R.layout.simple_list_item_1, accountList);
+                             arrayAdapter = new ArrayAdapter(homeActivity.this, R.layout.listview_item_row ,accountList);
                              accounts.setAdapter(arrayAdapter);
                          //Update accountList and listView if an account has changed
                          }else {

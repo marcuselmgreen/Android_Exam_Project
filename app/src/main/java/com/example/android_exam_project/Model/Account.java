@@ -50,8 +50,8 @@ public class Account implements Parcelable {
 
     @Override
     public String toString() {
-        return type +
-                ": " + balance;
+        return type.toUpperCase() +
+                ": " + balance + " DKK";
     }
 
     protected Account(Parcel in) {

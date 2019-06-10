@@ -2,6 +2,7 @@ package com.example.android_exam_project.Service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
@@ -41,30 +42,24 @@ public class transferService {
                     if (amountToSend < senderBalance) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             String type = snapshot.child(idReceiver).child("type").getValue(String.class);
-                            if (snapshot.hasChild(idReceiver) && senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer") && !type.equals("pension")) {
-                                //Transfer money
-                                db.child(key).child(idSender).child("balance").setValue(senderBalance - amountToSend);
+                            if (snapshot.hasChild(idReceiver) && senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer")) {
+                                //Check if pension account
+                                if (type.equals("pension")) {
+                                    transferService.nemIdPopUp(snapshot, idReceiver, context, amountToSend, idSender, senderBalance, key);
+                                } else {
+                                    //Transfer money
+                                    db.child(key).child(idSender).child("balance").setValue(senderBalance - amountToSend);
 
-                                //Add amount to receiver
-                                Double receiverBalance = snapshot.child(idReceiver).child("balance").getValue(Double.class);
-                                snapshot.child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
+                                    //Add amount to receiver
+                                    Double receiverBalance = snapshot.child(idReceiver).child("balance").getValue(Double.class);
+                                    snapshot.child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
 
-                                Toast toast = Toast.makeText(context, amountToSend + " DKK was sent to " + idReceiver + "!", Toast.LENGTH_SHORT);
-                                toast.show();
+                                    Toast toast = Toast.makeText(context, amountToSend + " DKK was sent to " + idReceiver + "!", Toast.LENGTH_SHORT);
+                                    toast.show();
+                                }
                             }
-                            if (snapshot.hasChild(idReceiver) && !senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer") || type.equals("pension")) {
-                                //nemId popup
-                                String receiverKey = snapshot.getKey();
-                                Double receiverBalance = snapshot.child(idReceiver).child("balance").getValue(Double.class);
-                                Intent intent = new Intent(context, nemidActivity.class);
-                                intent.putExtra("IdReceiver", idReceiver);
-                                intent.putExtra("AmountToSend", amountToSend);
-                                intent.putExtra("IdSender", idSender);
-                                intent.putExtra("SenderBalance", senderBalance);
-                                intent.putExtra("ReceiverBalance", receiverBalance);
-                                intent.putExtra("ReceiverKey", receiverKey);
-                                intent.putExtra("SenderKey", key);
-                                context.startActivity(intent);
+                            if (snapshot.hasChild(idReceiver) && !senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer")) {
+                                transferService.nemIdPopUp(snapshot, idReceiver, context, amountToSend, idSender, senderBalance, key);
                             }
                             if (snapshot.hasChild(idReceiver) && senderAccount.equals(receiverAccount) && transferType.equals("monthly_deposit")) {
                                 //Transfer money
@@ -75,7 +70,7 @@ public class transferService {
                                 snapshot.child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
                             }
                             if (transferType.equals("payment_service")) {
-                                Log.d(TAG, "onDataChange: sender balance new: " + (senderBalance-amountToSend));
+                                Log.d(TAG, "onDataChange: sender balance new: " + (senderBalance - amountToSend));
                                 //We don't have access to the receiver account so we only retract amount from the sender
                                 db.child(key).child(idSender).child("balance").setValue(senderBalance - amountToSend);
                             }
@@ -92,26 +87,21 @@ public class transferService {
                 }
             });
         }
-        /*if (amountToSend > senderBalance){
-            Toast toast = Toast.makeText(context, "You don't have enough money on this account to make the transaction", Toast.LENGTH_SHORT);
-            toast.show();
-            amount.setText("");
-            amount.requestFocus();
-        }
-        /*if (!snapshot.hasChild(accountTo) && !senderAccount.equals(receiverAccount)){
-            Toast toast = Toast.makeText(transactionActivity.this, "Please enter a valid account to receive the money..", Toast.LENGTH_SHORT);
-            toast.show();
-            toAccountAcc.setText("");
-            toAccountReg.setText("");
-            toAccountReg.requestFocus();
-        }*/
+    }
 
-        /*db.child(key).child(idFrom).child("balance").setValue(balanceFrom - amountToSend);
-        //String accountId = snapshot.child(accountTo).child("id").getValue(String.class);
-
-        //Add amount to receiver
-        balanceTo = snapshot.child(idTo).child("balance").getValue(Double.class);
-        snapshot.child(idTo).child("balance").getRef().setValue(balanceTo + amountToSend);*/
+    private static void nemIdPopUp(DataSnapshot snapshot, String idReceiver, Context context, Double amountToSend, String idSender, Double senderBalance, String key) {
+        //nemId popup
+        String receiverKey = snapshot.getKey();
+        Double receiverBalance = snapshot.child(idReceiver).child("balance").getValue(Double.class);
+        Intent intent = new Intent(context, nemidActivity.class);
+        intent.putExtra("IdReceiver", idReceiver);
+        intent.putExtra("AmountToSend", amountToSend);
+        intent.putExtra("IdSender", idSender);
+        intent.putExtra("SenderBalance", senderBalance);
+        intent.putExtra("ReceiverBalance", receiverBalance);
+        intent.putExtra("ReceiverKey", receiverKey);
+        intent.putExtra("SenderKey", key);
+        context.startActivity(intent);
     }
 
     public static void monthlyDeposit(String idReceiver, String idSender, String nextMonth, Double amountToDeposit, String key){

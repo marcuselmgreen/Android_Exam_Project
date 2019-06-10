@@ -3,6 +3,7 @@ package com.example.android_exam_project.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -38,9 +39,6 @@ public class newPaymentServiceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_payment_service);
 
-        //MAKE THIS AN ACTIVITY ADDING A NEW PAYMENTSERVICE/MONTHLY DEPOSIT
-        //CHOOSE BETWEEN AUTOMATIC PAYMENT OR MANUAL
-
         init();
     }
 
@@ -62,7 +60,15 @@ public class newPaymentServiceActivity extends AppCompatActivity {
         accountList = intent.getParcelableArrayListExtra("Accounts");
         key = intent.getStringExtra("Key");
 
-        arrayAdapter = new ArrayAdapter<>(newPaymentServiceActivity.this, android.R.layout.simple_list_item_1, accountList);
+        //Remove pension account
+        for (Account account :accountList) {
+            if (account.getType().equals("pension")) {
+                accountList.remove(account);
+                Log.d(TAG, "Pension account removed!");
+            }
+        }
+
+        arrayAdapter = new ArrayAdapter<>(newPaymentServiceActivity.this, R.layout.spinner_item_row, accountList);
         accounts.setAdapter(arrayAdapter);
     }
 

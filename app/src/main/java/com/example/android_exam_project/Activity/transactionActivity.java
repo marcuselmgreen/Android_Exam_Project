@@ -57,7 +57,7 @@ public class transactionActivity extends AppCompatActivity {
 
         checkPension();
 
-        arrayAdapter = new ArrayAdapter<>(transactionActivity.this, android.R.layout.simple_list_item_1, accountList);
+        arrayAdapter = new ArrayAdapter<>(transactionActivity.this, R.layout.spinner_item_row, accountList);
         fromAccount.setAdapter(arrayAdapter);
     }
 

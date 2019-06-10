@@ -60,9 +60,12 @@ public class accountSettingsActivity extends AppCompatActivity {
         key = intent.getStringExtra("Key");
         account = intent.getParcelableExtra("Account");
 
-        id.setText(account.getId());
-        balance.setText(String.valueOf(account.getBalance()));
-        type.setText(account.getType());
+        String accountNumber = "ACCOUNT NUMBER: " + account.getId().toUpperCase();
+        id.setText(accountNumber);
+        String balanceTxt = account.getBalance() + " DKK";
+        balance.setText(balanceTxt);
+        String accountType = account.getType().toUpperCase() + " ACCOUNT";
+        type.setText(accountType);
         Log.d(TAG, "init: " + account.getId());
 
         if (account.getType().equals("default") || account.getType().equals("business")){
@@ -77,7 +80,7 @@ public class accountSettingsActivity extends AppCompatActivity {
                     accountList.remove(i);
                 }
             }
-            ArrayAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, accountList);
+            ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.spinner_item_row, accountList);
             deposit_account.setAdapter(adapter);
         }
     }

@@ -1,5 +1,6 @@
 package com.example.android_exam_project.Activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import com.example.android_exam_project.Activity.homeActivity;
 import com.example.android_exam_project.Activity.loginActivity;
 import com.example.android_exam_project.R;
+import com.example.android_exam_project.Service.userService;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,7 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class settingsActivity extends AppCompatActivity {
 
-    TextView name, cpr;
+    TextView name, affiliate;
     EditText zip, email, phone, old_password, new_password, confirm_password;
     Button save;
     String key, old_password_db, TAG = "TAG";
@@ -43,7 +45,7 @@ public class settingsActivity extends AppCompatActivity {
 
     private void init() {
         name = findViewById(R.id.Name_txt);
-        cpr = findViewById(R.id.Cpr_txt);
+        affiliate = findViewById(R.id.affiliate_txt);
         zip = findViewById(R.id.Zip_input);
         email = findViewById(R.id.Email_input);
         phone = findViewById(R.id.Phone_input);
@@ -68,8 +70,10 @@ public class settingsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.d(TAG, "onChildAdded: " + dataSnapshot);
-                cpr.setText(dataSnapshot.child("cpr").getValue(String.class));
-                name.setText(dataSnapshot.child("name").getValue(String.class));
+                String userName = dataSnapshot.child("name").getValue(String.class).toUpperCase();
+                name.setText(userName);
+                String currentAffiliate = "AFFILIATE IN " + dataSnapshot.child("affiliate").getValue(String.class).toUpperCase();
+                affiliate.setText(currentAffiliate);
                 zip.setText(String.valueOf(dataSnapshot.child("zip").getValue(Long.class)));
                 email.setText(dataSnapshot.child("email").getValue(String.class));
                 phone.setText(String.valueOf(dataSnapshot.child("phone").getValue(Long.class)));
@@ -90,9 +94,11 @@ public class settingsActivity extends AppCompatActivity {
         db.child(key).child("zip").setValue(Integer.valueOf(zip.getText().toString()));
         db.child(key).child("email").setValue(email.getText().toString());
         db.child(key).child("phone").setValue(Integer.valueOf(phone.getText().toString()));
+        //If Zip changes then check if current affiliate still is the nearest
+        Context context = this.getApplicationContext();
+        userService.getAffiliate(Integer.valueOf(zip.getText().toString()), context, key);
+
         confirmPassword();
-        Toast toast = Toast.makeText(this, "User has been updated!", Toast.LENGTH_SHORT);
-        toast.show();
     }
 
     private void confirmPassword() {

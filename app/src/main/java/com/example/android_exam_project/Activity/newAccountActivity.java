@@ -49,6 +49,9 @@ public class newAccountActivity extends AppCompatActivity {
         accounts = findViewById(R.id.accounts);
         description = findViewById(R.id.account_description);
 
+        //Set description text as account overview
+        description.setText(getString(R.string.account_descriptions));
+
         Intent intent = getIntent();
         key = intent.getStringExtra("Key");
 
@@ -58,13 +61,13 @@ public class newAccountActivity extends AppCompatActivity {
     }
 
     private void loadAvailableAccounts() {
-        availableAccountList.add("business");
-        availableAccountList.add("savings");
-        availableAccountList.add("pension");
-        availableAccountList.add("budget");
-        availableAccountList.add("default");
+        availableAccountList.add("business".toUpperCase());
+        availableAccountList.add("savings".toUpperCase());
+        availableAccountList.add("pension".toUpperCase());
+        availableAccountList.add("budget".toUpperCase());
+        availableAccountList.add("default".toUpperCase());
 
-        arrayAdapter = new ArrayAdapter<>(newAccountActivity.this, android.R.layout.simple_list_item_1, availableAccountList);
+        arrayAdapter = new ArrayAdapter<>(newAccountActivity.this, R.layout.spinner_item_row, availableAccountList);
         accounts.setAdapter(arrayAdapter);
     }
 

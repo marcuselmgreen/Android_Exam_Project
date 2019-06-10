@@ -4,14 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/blue_custom"
     tools:context=".Activity.loginActivity">
 
     <ImageView
         android:id="@+id/kea_logo"
         android:layout_width="118dp"
         android:layout_height="67dp"
-        android:layout_marginStart="230dp"
-        android:layout_marginLeft="230dp"
+        android:layout_marginStart="247dp"
+        android:layout_marginLeft="247dp"
         android:layout_marginTop="15dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -30,61 +31,80 @@
 
     <Button
         android:id="@+id/register"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="142dp"
-        android:layout_marginLeft="142dp"
+        android:layout_width="100dp"
+        android:layout_height="45dp"
         android:layout_marginTop="32dp"
-        android:background="#CFCFCF"
-        android:text="@string/register"
+        android:layout_marginEnd="200dp"
+        android:layout_marginRight="200dp"
+        android:background="@drawable/button_bg_yellow"
         android:onClick="registerUser"
-        app:layout_constraintStart_toEndOf="@+id/login"
+        android:text="@string/register"
+        android:textColor="@color/yellow_custom"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password_input" />
 
     <Button
         android:id="@+id/login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="100dp"
+        android:layout_height="45dp"
         android:layout_marginStart="200dp"
         android:layout_marginLeft="200dp"
         android:layout_marginTop="32dp"
-        android:background="@android:color/holo_green_light"
-        android:text="@string/login"
+        android:background="@drawable/button_bg"
         android:onClick="validateLogin"
+        android:text="@string/login"
+        android:textColor="@color/green_custom"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password_input" />
 
     <EditText
         android:id="@+id/cpr_input"
         android:layout_width="418dp"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:layout_marginStart="150dp"
         android:layout_marginLeft="150dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="150dp"
+        android:layout_marginRight="150dp"
+        android:background="@drawable/input_bg"
         android:ems="10"
         android:inputType="number"
+        android:textColor="@color/grey_custom"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cpr_txt" />
 
     <EditText
         android:id="@+id/password_input"
-        android:layout_width="416dp"
-        android:layout_height="wrap_content"
+        android:layout_width="418dp"
+        android:layout_height="45dp"
         android:layout_marginStart="150dp"
         android:layout_marginLeft="150dp"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="150dp"
+        android:layout_marginRight="150dp"
+        android:background="@drawable/input_bg"
         android:ems="10"
+        android:gravity="center"
         android:inputType="textPassword"
+        android:textColor="@color/grey_custom"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cpr_input" />
+        app:layout_constraintTop_toBottomOf="@+id/password_txt" />
 
     <TextView
         android:id="@+id/cpr_txt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="150dp"
-        android:layout_marginLeft="150dp"
+        android:layout_marginStart="300dp"
+        android:layout_marginLeft="300dp"
         android:layout_marginTop="10dp"
+        android:layout_marginEnd="300dp"
+        android:layout_marginRight="300dp"
         android:text="@string/cpr_login"
+        android:textColor="@color/grey_custom"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/kea_logo" />
 
@@ -92,10 +112,15 @@
         android:id="@+id/password_txt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="150dp"
-        android:layout_marginLeft="150dp"
+        android:layout_marginStart="300dp"
+        android:layout_marginLeft="300dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="300dp"
+        android:layout_marginRight="300dp"
         android:text="@string/password_login"
-        app:layout_constraintBottom_toTopOf="@+id/password_input"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:textColor="@color/grey_custom"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cpr_input" />
 
 </android.support.constraint.ConstraintLayout>

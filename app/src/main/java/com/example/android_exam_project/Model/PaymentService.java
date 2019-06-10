@@ -69,6 +69,6 @@ public class PaymentService {
 
     @Override
     public String toString() {
-        return "Due: " + date + ", " + amount + " DKK , " + description + ", autopay: " + autopay;
+        return description.toUpperCase() + " DUE: " + date + " " + amount + " DKK " + " AUTOPAYMENT: " + autopay.toUpperCase();
     }
 }

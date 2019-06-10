@@ -43,8 +43,6 @@ public class paymentServiceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment_service);
 
-        //MAKE THIS ACTIVITY AN PAYMENTSERVICE OVERVIEW WITH ABILITY TO PAY BILLS MANUALLY
-
         init();
     }
 
@@ -75,11 +73,11 @@ public class paymentServiceActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //Get accounts with payment_service child and show in listView
+                int count = 0;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (snapshot.hasChild("payment_service")) {
-                        Iterable<DataSnapshot> monthlyDepositChildren = snapshot.child("payment_service").getChildren();
-                        int count = 0;
-                        for (DataSnapshot children : monthlyDepositChildren) {
+                        Iterable<DataSnapshot> paymentServiceChildren = snapshot.child("payment_service").getChildren();
+                        for (DataSnapshot children : paymentServiceChildren) {
                             String account = children.getKey();
                             Double amount = children.child("amount").getValue(Double.class);
                             String date = children.child("date").getValue(String.class);
@@ -91,7 +89,7 @@ public class paymentServiceActivity extends AppCompatActivity {
                             if (!paymentServiceList.contains(paymentService) && paymentServiceList.size() == count) {
                                 paymentServiceList.add(paymentService);
                                 //Might not work when adding more accounts
-                                arrayAdapter = new ArrayAdapter(paymentServiceActivity.this, android.R.layout.simple_list_item_1, paymentServiceList);
+                                arrayAdapter = new ArrayAdapter(paymentServiceActivity.this, R.layout.listview_item_row, paymentServiceList);
                                 paymentServices.setAdapter(arrayAdapter);
                                 //Update accountList and listView if an account has changed
                             }else {

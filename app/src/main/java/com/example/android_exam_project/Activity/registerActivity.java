@@ -1,6 +1,10 @@
 package com.example.android_exam_project.Activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -14,12 +18,16 @@ import com.example.android_exam_project.Model.Account;
 import com.example.android_exam_project.Model.User;
 import com.example.android_exam_project.R;
 
+import com.example.android_exam_project.Service.userService;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 
@@ -146,6 +154,10 @@ public class registerActivity extends AppCompatActivity {
         String key = db.push().getKey();
 
         db.child(key).setValue(user);
+
+        //Calculate nearest affiliate
+        Context context = this.getApplicationContext();
+        userService.getAffiliate(zip, context, key);
 
         //Create unique account id
         //Alt efter hvilken bank der ligger tættest på, bestemmes regnummeret
