@@ -2,18 +2,11 @@ package com.example.android_exam_project.Service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android_exam_project.Activity.accountSettingsActivity;
-import com.example.android_exam_project.Activity.homeActivity;
 import com.example.android_exam_project.Activity.nemidActivity;
-import com.example.android_exam_project.Activity.transactionActivity;
-import com.example.android_exam_project.Model.Account;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,28 +15,31 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Calendar;
 
-import static android.app.Activity.RESULT_OK;
-
 public class transferService {
     private static DatabaseReference db = FirebaseDatabase.getInstance().getReference("users");
     private static String TAG = "TAG";
 
+    //This method takes the necessary amounts of parameters, to send money from one account to another
+    //the parameters need to be final, because the are accessed in another class
     public static void transaction(final String idSender, final String idReceiver, final Double amountToSend, final Context context, final String key, final String transferType) {
         //Checking if receiver account is bound to this user
         final String senderAccount = idSender.substring(9, 13);
         final String receiverAccount = idReceiver.substring(9, 13);
 
+        //Checking if id on sender and receiver is the same
         if (!idSender.equals(idReceiver)) {
             db.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     Log.d(TAG, "idSender: " + idSender + "senderBalance: " + dataSnapshot.child(key).child(idSender).child("balance").getValue(Double.class));
                     Double senderBalance = dataSnapshot.child(key).child(idSender).child("balance").getValue(Double.class);
+                    //Check if sender has enough money to transfer
                     if (amountToSend < senderBalance) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             String type = snapshot.child(idReceiver).child("type").getValue(String.class);
+                            //If sender and receiver are under the same user and if a normal transfer (no nem-id)
                             if (snapshot.hasChild(idReceiver) && senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer")) {
-                                //Check if pension account
+                                //Check if pension account (nem-id)
                                 if (type.equals("pension")) {
                                     transferService.nemIdPopUp(snapshot, idReceiver, context, amountToSend, idSender, senderBalance, key);
                                 } else {
@@ -58,9 +54,11 @@ public class transferService {
                                     toast.show();
                                 }
                             }
+                            //If sender and receiver are not under the same user and if it is a normal transfer (nem-id)
                             if (snapshot.hasChild(idReceiver) && !senderAccount.equals(receiverAccount) && transferType.equals("normal_transfer")) {
                                 transferService.nemIdPopUp(snapshot, idReceiver, context, amountToSend, idSender, senderBalance, key);
                             }
+                            //If sender and receiver are under the same account and if it is a monthly transfer
                             if (snapshot.hasChild(idReceiver) && senderAccount.equals(receiverAccount) && transferType.equals("monthly_deposit")) {
                                 //Transfer money
                                 db.child(key).child(idSender).child("balance").setValue(senderBalance - amountToSend);
@@ -69,6 +67,7 @@ public class transferService {
                                 Double receiverBalance = snapshot.child(idReceiver).child("balance").getValue(Double.class);
                                 snapshot.child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
                             }
+                            //If transfer is payment service
                             if (transferType.equals("payment_service")) {
                                 Log.d(TAG, "onDataChange: sender balance new: " + (senderBalance - amountToSend));
                                 //We don't have access to the receiver account so we only retract amount from the sender
@@ -89,8 +88,9 @@ public class transferService {
         }
     }
 
+    //Start nem-id activity and send all the necessary information
     private static void nemIdPopUp(DataSnapshot snapshot, String idReceiver, Context context, Double amountToSend, String idSender, Double senderBalance, String key) {
-        //nemId popup
+        //nem-id popup
         String receiverKey = snapshot.getKey();
         Double receiverBalance = snapshot.child(idReceiver).child("balance").getValue(Double.class);
         Intent intent = new Intent(context, nemidActivity.class);
@@ -104,11 +104,13 @@ public class transferService {
         context.startActivity(intent);
     }
 
+    //Send monthly deposit data to database
     public static void monthlyDeposit(String idReceiver, String idSender, String nextMonth, Double amountToDeposit, String key){
         db.child(key).child(idSender).child("monthly_deposit").child(idReceiver).child("date").setValue(nextMonth);
         db.child(key).child(idSender).child("monthly_deposit").child(idReceiver).child("amount").setValue(amountToDeposit);
     }
 
+    //Send payment service data to database
     public static void paymentService(String idReceiver, String idSender, String nextMonth, Double amountToDeposit, String key, String autoPay, String description){
         db.child(key).child(idSender).child("payment_service").child(idReceiver).child("date").setValue(nextMonth);
         db.child(key).child(idSender).child("payment_service").child(idReceiver).child("amount").setValue(amountToDeposit);
@@ -116,6 +118,8 @@ public class transferService {
         db.child(key).child(idSender).child("payment_service").child(idReceiver).child("description").setValue(description);
     }
 
+    //When a payment service is marked with autopay = "yes" or is a monthly deposit, this method
+    //is called, and it checks if deposit date is before the current date and transfers the money accordingly
     public static void autoTransfer(DataSnapshot snapshot, String transferType, Calendar today, String key, Context context){
         //Get each date registered for monthly deposit from database and convert to Calendar format
         Iterable<DataSnapshot> monthlyDepositChildren = snapshot.child(transferType).getChildren();
@@ -129,6 +133,7 @@ public class transferService {
             Calendar depositDate = Calendar.getInstance();
             depositDate.set(year, month, day);
             Log.d(TAG, "autoPay: " + children.child("autopay").toString());
+            //Check autopay = "yes" and date is before today
             if (depositDate.before(today) && children.child("autopay").getValue(String.class).equals("yes")) {
 
                 //Update with new date
@@ -148,11 +153,12 @@ public class transferService {
                 //Remove children
                 db.child(key).child(idSender).child(transferType).child(idReceiver).removeValue();
 
-                //Create new child with the date
+                //Create new child with the date for monthly deposit
                 if (transferType.equals("monthly_deposit")) {
                     String nextMonth = day + ":" + (today.get(Calendar.MONTH) + 1) + ":" + today.get(Calendar.YEAR);
                     transferService.monthlyDeposit(idReceiver, idSender, nextMonth, amountToSend, key);
                 } else {
+                    //Create new child with the date for payment service
                     String nextMonth = day + ":" + (today.get(Calendar.MONTH) + 1) + ":" + today.get(Calendar.YEAR);
                     String description = children.child("description").getValue(String.class);
                     transferService.paymentService(idReceiver, idSender, nextMonth, amountToSend, key, "yes", description);

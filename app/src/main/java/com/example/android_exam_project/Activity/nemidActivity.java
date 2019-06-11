@@ -31,6 +31,14 @@ public class nemidActivity extends AppCompatActivity {
         setContentView(R.layout.activity_nemid);
 
         init();
+
+        //Load saved instance
+        if (savedInstanceState != null) {
+            cpr.setText(savedInstanceState.getString("cpr"));
+            password.setText(savedInstanceState.getString("password"));
+            key.setText(savedInstanceState.getString("keycardinput"));
+            keycardnumber.setText(savedInstanceState.getString("keycardnumber"));
+        }
     }
 
     private void init() {
@@ -42,6 +50,7 @@ public class nemidActivity extends AppCompatActivity {
         submit = findViewById(R.id.submit);
         db = FirebaseDatabase.getInstance().getReference("users");
 
+        //We need to get all the necessary information from the transferService class
         Intent intent = getIntent();
         idSender = intent.getStringExtra("IdSender");
         idReceiver = intent.getStringExtra("IdReceiver");
@@ -51,10 +60,12 @@ public class nemidActivity extends AppCompatActivity {
         receiverKey = intent.getStringExtra("ReceiverKey");
         senderKey = intent.getStringExtra("SenderKey");
 
-
+        //The keycard number is random and is used for nothing because the correspondent key is always
+        //123456
         String number = String.valueOf(Math.round(Math.random() * (9999 - 1000) + 1000));
         keycardnumber.setText(number);
 
+        //This is to make the activity look like a popup window by changing width and height of window
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
 
@@ -71,11 +82,12 @@ public class nemidActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String userCpr = cpr.getText().toString();
                 String userPassword = password.getText().toString();
+                //Check the cpr and password input with the one from the database
                 if (dataSnapshot.child("cpr").getValue(String.class).equals(userCpr) && dataSnapshot.child("password").getValue(String.class).equals(userPassword)) {
+                    //Check if key is 123456
                     if (Integer.parseInt(key.getText().toString()) == 123456) {
                         //Transfer money
                         db.child(senderKey).child(idSender).child("balance").setValue(senderBalance - amountToSend);
-                        //String accountId = snapshot.child(accountTo).child("id").getValue(String.class);
 
                         //Add amount to receiver
                         db.child(receiverKey).child(idReceiver).child("balance").getRef().setValue(receiverBalance + amountToSend);
@@ -109,4 +121,13 @@ public class nemidActivity extends AppCompatActivity {
     public void back(View v){
         finish();
         }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("cpr", cpr.getText().toString());
+        outState.putString("password", password.getText().toString());
+        outState.putString("keycardinput", key.getText().toString());
+        outState.putString("keycardnumber", keycardnumber.getText().toString());
+    }
 }

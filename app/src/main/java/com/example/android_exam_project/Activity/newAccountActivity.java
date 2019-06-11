@@ -41,6 +41,12 @@ public class newAccountActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_account);
 
         init();
+
+        //Load saved instance
+        if (savedInstanceState != null) {
+            description.setText(savedInstanceState.getString("description"));
+            availableAccountList = savedInstanceState.getStringArrayList("availableAccountList");
+        }
     }
 
     private void init() {
@@ -79,10 +85,13 @@ public class newAccountActivity extends AppCompatActivity {
                 Double balance = 0.0;
                 Account account = new Account(type, balance);
 
-                //Create unique account id
+                //Registration number is the same for all the accounts in the bank
                 long regNumber = 2055;
+                //Account id is the same for every account under a single user, so we need to
+                //retrieve that from the database
                 long accountId = dataSnapshot.child("accountId").getValue(Long.class);
 
+                //Account number is unique for every account under a single user
                 long count = 1;
                 //Increment the last account number
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -96,7 +105,7 @@ public class newAccountActivity extends AppCompatActivity {
                     }
                 }
                 long accountNumber = count;
-                //Increment last account instead
+                //Send new account to the database
                 db.child(key).child(regNumber + " " + regNumber + accountId + accountNumber).setValue(account);
                 Toast toast = Toast.makeText(newAccountActivity.this, "You have received a new account", Toast.LENGTH_SHORT);
                 toast.show();
@@ -111,5 +120,12 @@ public class newAccountActivity extends AppCompatActivity {
 
     public void back(View v) {
         finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("description", description.getText().toString());
+        outState.putStringArrayList("availableAccountList", availableAccountList);
     }
 }

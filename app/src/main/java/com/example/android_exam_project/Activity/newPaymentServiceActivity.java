@@ -23,7 +23,7 @@ import java.util.ArrayList;
 public class newPaymentServiceActivity extends AppCompatActivity {
 
     Button confirm, back;
-    TextView cardType, cardInfo1, cardinfo2, amount, date, accountStatement;
+    TextView cardType, cardInfo1, cardInfo2, amount, date, accountStatement;
     Spinner accounts;
     CheckBox autopay_checkbox;
     DatabaseReference db;
@@ -40,6 +40,17 @@ public class newPaymentServiceActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_payment_service);
 
         init();
+
+        //Load saved instance
+        if (savedInstanceState != null) {
+            accountStatement.setText(savedInstanceState.getString("accountStatement"));
+            amount.setText(savedInstanceState.getString("amount"));
+            date.setText(savedInstanceState.getString("date"));
+            cardType.setText(savedInstanceState.getString("cardType"));
+            cardInfo1.setText(savedInstanceState.getString("cardInfo1"));
+            cardInfo2.setText(savedInstanceState.getString("cardInfo2"));
+            accountList = savedInstanceState.getParcelableArrayList("accountList");
+        }
     }
 
     private void init() {
@@ -47,7 +58,7 @@ public class newPaymentServiceActivity extends AppCompatActivity {
         back = findViewById(R.id.back);
         cardType = findViewById(R.id.card_type_input);
         cardInfo1 = findViewById(R.id.card_info_1);
-        cardinfo2 = findViewById(R.id.card_info_2);
+        cardInfo2 = findViewById(R.id.card_info_2);
         amount = findViewById(R.id.amount_input);
         date = findViewById(R.id.date_input);
         accountStatement = findViewById(R.id.account_statement_input);
@@ -74,7 +85,7 @@ public class newPaymentServiceActivity extends AppCompatActivity {
 
     public void confirm(View v){
         //Check user inputs
-        //More checks(month over 12 etc.)
+        //Date needs to match a specific regex: dd/mm/yyyy
         if (date.getText().toString().length() != 10 && !date.getText().toString().matches("^[0-3]?[0-9]/[0-3]?[0-9]/(?:[0-9]{2})?[0-9]{2}$")) {
             Toast toast = Toast.makeText(this, "Date must of format dd/mm/yyyy!", Toast.LENGTH_SHORT);
             toast.show();
@@ -88,8 +99,12 @@ public class newPaymentServiceActivity extends AppCompatActivity {
                 autopay = "no";
             }
 
-            String idReceiver = "+" + cardType.getText().toString() + "<" + cardInfo1.getText().toString() + "+" + cardinfo2.getText().toString() + "<";
+            //Concatenate all the payment id inputs
+            String idReceiver = "+" + cardType.getText().toString() + "<" + cardInfo1.getText().toString() + "+" + cardInfo2.getText().toString() + "<";
+            //Get sender id from spinner
             String idSender = accountFromSpinner.getId();
+            //Split date and send to database in new format (The reason it needs to be split, is because
+            //a "/" in a string will make a new child in the database, so it is replaced with :)
             String[] dateOfServiceSplit = date.getText().toString().split("/");
             String dateOfService = Integer.valueOf(dateOfServiceSplit[0]).toString() + ":" +  Integer.valueOf(dateOfServiceSplit[1]).toString() + ":" + dateOfServiceSplit[2];
             Double amountToSend = Double.valueOf(amount.getText().toString());
@@ -104,6 +119,18 @@ public class newPaymentServiceActivity extends AppCompatActivity {
 
     public void back(View v){
         finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("accountStatement", accountStatement.getText().toString());
+        outState.putString("amount", amount.getText().toString());
+        outState.putString("date", date.getText().toString());
+        outState.putString("cardType", cardType.getText().toString());
+        outState.putString("cardInfo1", cardInfo1.getText().toString());
+        outState.putString("cardInfo2", cardInfo2.getText().toString());
+        outState.putParcelableArrayList("accountList", accountList);
     }
 
 }

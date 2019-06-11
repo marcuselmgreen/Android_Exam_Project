@@ -42,6 +42,14 @@ public class transactionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_transaction);
 
         init();
+
+        //Load saved instance
+        if (savedInstanceState != null) {
+            amount.setText(savedInstanceState.getString("amount"));
+            toAccountAcc.setText(savedInstanceState.getString("toAccountAcc"));
+            toAccountReg.setText(savedInstanceState.getString("toAccountReg"));
+            accountList = savedInstanceState.getParcelableArrayList("accountList");
+        }
     }
 
     private void init() {
@@ -83,6 +91,7 @@ public class transactionActivity extends AppCompatActivity {
     }
 
     //Check age of user, if old enough, they get access to withdraw from pension account
+    //May not work on older phones because the api call requires level 26 and the current min. is 15
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void checkPension() {
         //Check age and remove pension account from spinner
@@ -108,5 +117,14 @@ public class transactionActivity extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("amount", amount.getText().toString());
+        outState.putString("toAccountAcc", toAccountAcc.getText().toString());
+        outState.putString("toAccountReg", toAccountReg.getText().toString());
+        outState.putParcelableArrayList("accountList", accountList);
     }
 }

@@ -1,7 +1,5 @@
 package com.example.android_exam_project.Model;
 
-import android.os.Parcelable;
-
 public class PaymentService {
     private String date;
     private double amount;

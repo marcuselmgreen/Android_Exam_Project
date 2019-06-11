@@ -2,12 +2,8 @@ package com.example.android_exam_project.Activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.constraint.solver.widgets.Snapshot;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -25,9 +21,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -51,6 +44,8 @@ public class homeActivity extends AppCompatActivity {
         loadAccounts();
     }
 
+    //When another activity has finished, this activity is initiated once again, so according to
+    //the android lifecycle we need to call onStart() and load all accounts again
     @Override
     protected void onStart() {
         super.onStart();
@@ -97,15 +92,15 @@ public class homeActivity extends AppCompatActivity {
                          Double balance = Double.valueOf(snapshot.child("balance").getValue(Long.class));
                          String type = String.valueOf(snapshot.child("type").getValue());
                          Account account = new Account(id, balance, type);
-                         //If account does not exist in accountList, then add and show in listView
+                         //If account does not exist in accountList, then add and show in listView.
                          if (!accountList.contains(account) && accountList.size() == count) {
                              Log.d(TAG, "onDataChange: " + id + ", balance: " + snapshot.child("balance").getValue());
                              accountList.add(account);
-                             //Might not work when adding more accounts
                              arrayAdapter = new ArrayAdapter(homeActivity.this, R.layout.listview_item_row ,accountList);
                              accounts.setAdapter(arrayAdapter);
                          //Update accountList and listView if an account has changed
                          }else {
+                             //Keep track of accounts with count
                              accountList.set(count, account);
                              arrayAdapter.notifyDataSetChanged();
                          }
@@ -123,7 +118,7 @@ public class homeActivity extends AppCompatActivity {
         });
     }
 
-    //Check monthly deposits in database and send the money if needed
+    //Check monthly deposits and payment services with autopayment in database and send the money if needed
     public void checkMonthlyDeposits(){
         db.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -159,21 +154,21 @@ public class homeActivity extends AppCompatActivity {
         intent.putExtra("Key", key);
         startActivity(intent);
     }
-    //Go to transaction activity and expect result from intent
+    //Go to transaction activity
     public void showTransaction(View v) {
         Intent intent = new Intent(this, transactionActivity.class);
         intent.putExtra("Accounts", accountList);
         intent.putExtra("Key", key);
         startActivity(intent);
     }
-
+    //Go to payment service activity
     public void showPaymentService(View v) {
         Intent intent = new Intent(this, paymentServiceActivity.class);
         intent.putExtra("Accounts", accountList);
         intent.putExtra("Key", key);
         startActivity(intent);
     }
-
+    //Go to new account activity
     public void showNewAccount(View v) {
         Intent intent = new Intent(this, newAccountActivity.class);
         intent.putExtra("AccountId", accountId);

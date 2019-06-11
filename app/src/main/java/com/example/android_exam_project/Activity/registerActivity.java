@@ -2,9 +2,6 @@ package com.example.android_exam_project.Activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -25,9 +22,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 
@@ -45,6 +39,17 @@ public class registerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         init();
+
+        //Load saved instance
+        if (savedInstanceState != null) {
+            cpr.setText(savedInstanceState.getString("cpr"));
+            name.setText(savedInstanceState.getString("name"));
+            email.setText(savedInstanceState.getString("email"));
+            zip.setText(savedInstanceState.getString("zip"));
+            phone.setText(savedInstanceState.getString("phone"));
+            password.setText(savedInstanceState.getString("password"));
+            dateofbirth.setText(savedInstanceState.getString("dateofbirth"));
+        }
     }
 
     public void init(){
@@ -61,7 +66,9 @@ public class registerActivity extends AppCompatActivity {
         db = FirebaseDatabase.getInstance().getReference("users");
     }
 
+    //Register new user and send information to the database
     public void registerUser(View v){
+        //Check input values
         if (isValid()) {
             Log.d(TAG, "Submit pressed");
             db.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -72,6 +79,7 @@ public class registerActivity extends AppCompatActivity {
                         Log.d(TAG, "onDataChange method, cpr: " + userCpr);
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             Log.d(TAG, "onChildAdded: " + snapshot);
+                            //Check if a user with the same cpr exists
                             if (snapshot.child("cpr").getValue(String.class).equals(userCpr)) {
                                 Log.d(TAG, "onDataChange: " + snapshot.child("cpr").getValue(String.class) + ", Input: " + userCpr);
                                 Toast toast = Toast.makeText(registerActivity.this, "A user with the same cpr already exists!", Toast.LENGTH_SHORT);
@@ -86,6 +94,7 @@ public class registerActivity extends AppCompatActivity {
                             }
                         }
                     } else {
+                        //Write new user to database
                         writeNewUser(cpr.getText().toString(), name.getText().toString(), email.getText().toString(), Integer.parseInt(zip.getText().toString()), Integer.parseInt(phone.getText().toString()), password.getText().toString(), dateofbirth.getText().toString());
                         Toast toast = Toast.makeText(registerActivity.this, "User has been created!", Toast.LENGTH_SHORT);
                         toast.show();
@@ -95,7 +104,6 @@ public class registerActivity extends AppCompatActivity {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                    System.out.println("cancel");
                 }
             });
         }
@@ -109,6 +117,7 @@ public class registerActivity extends AppCompatActivity {
         String passwordInput = password.getText().toString();
         String dateOfBirthInput = dateofbirth.getText().toString();
 
+        //Check length of cpr and if cpr consists of numbers
         if (cprInput.length() != 10 && !Pattern.matches("[a-zA-Z]+", cprInput)){
             Toast toast = Toast.makeText(this, "Cpr must of format xxxxxxxxxx!", Toast.LENGTH_SHORT);
             toast.show();
@@ -127,6 +136,7 @@ public class registerActivity extends AppCompatActivity {
             email.requestFocus();
             return false;
         }
+        //Zip code must be 4 digits
         if (zipInput.length() != 4){
             Toast toast = Toast.makeText(this, "Must be a valid zip code!", Toast.LENGTH_SHORT);
             toast.show();
@@ -139,6 +149,7 @@ public class registerActivity extends AppCompatActivity {
             password.requestFocus();
             return false;
         }
+        //Check length of date of birth and if it matches the pattern dd/mm/yyyy
         if (dateOfBirthInput.length() != 10 && !dateOfBirthInput.matches("^[0-3]?[0-9]/[0-3]?[0-9]/(?:[0-9]{2})?[0-9]{2}$")){
             Toast toast = Toast.makeText(this, "Date of birth must of format dd/mm/yyyy!", Toast.LENGTH_SHORT);
             toast.show();
@@ -153,20 +164,23 @@ public class registerActivity extends AppCompatActivity {
         Log.d(TAG, "writeNewUser: " + user.toString());
         String key = db.push().getKey();
 
+        //Send information to the database. It will automatically make children according to the
+        //number of attributes of the User class and make key + values from that
         db.child(key).setValue(user);
 
         //Calculate nearest affiliate
         Context context = this.getApplicationContext();
         userService.getAffiliate(zip, context, key);
 
-        //Create unique account id
-        //Alt efter hvilken bank der ligger tættest på, bestemmes regnummeret
+        //Create unique account id and registration number is the same for all the users of the bank
         long regNumber = 2055;
         long accountId = regNumber + Math.round(Math.random() * (9999 - 1000) + 1000);
 
-        Account defaultAccount = new Account("default", 0.0);
-        Account budgetAccount = new Account("budget", 0.0);
+        //Provide a default and budget account to the user with a balance of 100
+        Account defaultAccount = new Account("default", 100);
+        Account budgetAccount = new Account("budget", 100);
 
+        //Set account number as 1 and 2, because these are the first two accounts
         db.child(key).child(regNumber + " " + regNumber + accountId + 1).setValue(defaultAccount);
         db.child(key).child(regNumber + " " + regNumber + accountId + 2).setValue(budgetAccount);
         db.child(key).child("accountId").setValue(accountId);
@@ -177,4 +191,15 @@ public class registerActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("cpr", cpr.getText().toString());
+        outState.putString("name", name.getText().toString());
+        outState.putString("email", email.getText().toString());
+        outState.putString("zip", zip.getText().toString());
+        outState.putString("phone", phone.getText().toString());
+        outState.putString("dateofbirth", dateofbirth.getText().toString());
+        outState.putString("password", password.getText().toString());
+    }
 }

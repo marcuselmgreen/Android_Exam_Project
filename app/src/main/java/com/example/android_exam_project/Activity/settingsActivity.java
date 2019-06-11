@@ -41,6 +41,16 @@ public class settingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         init();
+
+        //Load saved instance
+        if (savedInstanceState != null) {
+            zip.setText(savedInstanceState.getString("zip"));
+            email.setText(savedInstanceState.getString("email"));
+            phone.setText(savedInstanceState.getString("phone"));
+            old_password.setText(savedInstanceState.getString("oldPassword"));
+            new_password.setText(savedInstanceState.getString("newPassword"));
+            confirm_password.setText(savedInstanceState.getString("confirmPassword"));
+        }
     }
 
     private void init() {
@@ -62,7 +72,7 @@ public class settingsActivity extends AppCompatActivity {
         loadInfo();
     }
 
-    //Load information from Firebase and show to the user
+    //Load information from database and show to the user
     private void loadInfo() {
 
         db.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -101,6 +111,8 @@ public class settingsActivity extends AppCompatActivity {
         confirmPassword();
     }
 
+    //Confirm the new password by comparing the old password with the one from the database
+    //and compare the new password with confirm new password
     private void confirmPassword() {
         if (!new_password.getText().toString().isEmpty()){
             if (!old_password.getText().toString().equals(old_password_db)){
@@ -122,6 +134,17 @@ public class settingsActivity extends AppCompatActivity {
 
     public void back(View v){
         finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("zip", zip.getText().toString());
+        outState.putString("phone", phone.getText().toString());
+        outState.putString("email", email.getText().toString());
+        outState.putString("oldPassword", old_password.getText().toString());
+        outState.putString("newPassword", new_password.getText().toString());
+        outState.putString("confirmPassword", confirm_password.getText().toString());
     }
 
 }

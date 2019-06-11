@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.example.android_exam_project.Model.Account;
 import com.example.android_exam_project.Model.PaymentService;
@@ -36,14 +35,17 @@ public class paymentServiceActivity extends AppCompatActivity {
     private ArrayList<Account> accountList = new ArrayList<>();
     private ArrayList<PaymentService> paymentServiceList = new ArrayList<>();
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment_service);
 
         init();
+
+        //Load saved instance
+        if (savedInstanceState != null) {
+            accountList = savedInstanceState.getParcelableArrayList("accountList");
+        }
     }
 
     @Override
@@ -68,15 +70,17 @@ public class paymentServiceActivity extends AppCompatActivity {
 
     }
 
+    //Get accounts with payment_service child and show in listView
     private void loadPaymentServiceList() {
         db.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //Get accounts with payment_service child and show in listView
                 int count = 0;
+                //Go through each account under user
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (snapshot.hasChild("payment_service")) {
                         Iterable<DataSnapshot> paymentServiceChildren = snapshot.child("payment_service").getChildren();
+                        //Go through each payment_service under account
                         for (DataSnapshot children : paymentServiceChildren) {
                             String account = children.getKey();
                             Double amount = children.child("amount").getValue(Double.class);
@@ -86,12 +90,14 @@ public class paymentServiceActivity extends AppCompatActivity {
                             String idSender = snapshot.getKey();
                             PaymentService paymentService = new PaymentService(date, amount, account, description, autopay, idSender);
 
+                            //Check if paymentServiceList already contains paymentService
                             if (!paymentServiceList.contains(paymentService) && paymentServiceList.size() == count) {
                                 paymentServiceList.add(paymentService);
                                 //Might not work when adding more accounts
                                 arrayAdapter = new ArrayAdapter(paymentServiceActivity.this, R.layout.listview_item_row, paymentServiceList);
                                 paymentServices.setAdapter(arrayAdapter);
                                 //Update accountList and listView if an account has changed
+                                //Count is there to keep track of each payment service
                             }else {
                                 paymentServiceList.set(count, paymentService);
                                 arrayAdapter.notifyDataSetChanged();
@@ -111,6 +117,8 @@ public class paymentServiceActivity extends AppCompatActivity {
         });
     }
 
+    //If any payment service has been saved to database with autopay = "no", then retract money
+    //from the account and update payment service with the next date
     public void payBills(View v) {
         db.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -122,6 +130,7 @@ public class paymentServiceActivity extends AppCompatActivity {
                 //today.set(Calendar.MONTH, today.get(Calendar.MONTH) + 4);
                 for (int i = 0; i < paymentServiceList.size(); i++) {
                     Log.d(TAG, "onDataChange: Checking accounts");
+                    //Get date from database and check if date is before the current date
                     String date = paymentServiceList.get(i).getDate();
                     String[] dateSplit = date.split(":");
                     int day = Integer.valueOf(dateSplit[0]);
@@ -131,9 +140,11 @@ public class paymentServiceActivity extends AppCompatActivity {
                     dueDate.set(year, month, day);
                     Log.d(TAG, "onDataChange: Date today: " + today.get(Calendar.DAY_OF_MONTH) + "/" + today.get(Calendar.MONTH) + ", Date due: " + dueDate.get(Calendar.DAY_OF_MONTH) + "/" + dueDate.get(Calendar.MONTH));
                     if (dueDate.before(today) && paymentServiceList.get(i).getAutopay().equals("no")) {
+                        //If date is before today then retract money from account and update the date
                         Log.d(TAG, "onDataChange: Checking date");
                         String idSender = paymentServiceList.get(i).getIdSender();
                         Double balance = dataSnapshot.child(idSender).child("balance").getValue(Double.class);
+                        //Check if user has the money
                         if (paymentServiceList.get(i).getAmount() < balance) {
                             Log.d(TAG, "onDataChange: Checking balance");
                             //Update with new date
@@ -171,6 +182,7 @@ public class paymentServiceActivity extends AppCompatActivity {
         finish();
     }
 
+    //Go to add new payment service activity
     public void addNewService(View v) {
         Intent intent = new Intent(this, newPaymentServiceActivity.class);
         intent.putExtra("Accounts", accountList);
@@ -180,5 +192,11 @@ public class paymentServiceActivity extends AppCompatActivity {
 
     public void back(View v) {
         finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("accountList", accountList);
     }
 }
